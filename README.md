@@ -40,7 +40,6 @@ El siguiente diagrama muestra el recorrido de los datos desde las fuentes hasta 
 
 ![Flujo de datos](docs/data_flow.png)
 
-[Ver diagrama editable](docs/data_flow.drawio)
 
 ### Integración de fuentes
 
@@ -48,7 +47,6 @@ La integración entre las diferentes fuentes CRM y ERP se encuentra representada
 
 ![Integración de fuentes](docs/integration_model.png)
 
-[Ver diagrama editable](docs/integration_model.drawio)
 
 ## Modelo dimensional
 
@@ -68,7 +66,6 @@ El modelo dimensional se encuentra representado en el siguiente diagrama:
 
 ![Modelo dimensional](docs/data_mart.png)
 
-[Ver diagrama editable](docs/data_mart.drawio)
 
 ## Controles de calidad
 
