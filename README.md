@@ -83,6 +83,7 @@ Los scripts de validación se encuentran en:
 ## Tecnologías
 
 * SQL Server
+* T-SQL
 * Medallion Architecture
 * Dimensional Modeling
 * Git / GitHub
