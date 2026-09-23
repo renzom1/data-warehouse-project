@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="Página-1" id="MKYEgzrUsU-JflfMk8MY">
-    <mxGraphModel dx="1848" dy="626" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1836" dy="614" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -9,9 +9,6 @@
         </mxCell>
         <mxCell id="ghwNYqNGNM7N7RZ2waEf-21" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;dashed=1;" value="" vertex="1">
           <mxGeometry height="386.75" width="420" x="-545" y="173.25" as="geometry" />
-        </mxCell>
-        <mxCell id="ghwNYqNGNM7N7RZ2waEf-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;fontStyle=1;strokeColor=none;" value="&lt;font style=&quot;font-size: 40px;&quot;&gt;Integration Model&lt;/font&gt;&lt;font style=&quot;font-size: 30px;&quot;&gt; &lt;/font&gt;&lt;font style=&quot;font-size: 10px; font-weight: normal;&quot;&gt;(how tables are connected)&lt;/font&gt;" vertex="1">
-          <mxGeometry height="84" width="561.25" x="-312.5" y="10" as="geometry" />
         </mxCell>
         <mxCell id="ghwNYqNGNM7N7RZ2waEf-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#008a00;fontColor=#ffffff;strokeColor=#005700;" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;crm_cust_info&lt;/font&gt;" vertex="1">
           <mxGeometry height="30" width="145" x="-327.5" y="220" as="geometry" />

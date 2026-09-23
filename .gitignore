@@ -16,3 +16,6 @@ venv/
 *.bak
 *.mdf
 *.ldf
+# draw.io temporary files
+*.drawio.dtmp
+*.drawio.bkp
