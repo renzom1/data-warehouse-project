@@ -24,7 +24,7 @@ Estas views integran y reorganizan los datos previamente transformados en Silver
 
 Silver contiene los datos ya limpiados y transformados, pero mantiene una organización principalmente relacionada con las distintas fuentes de origen.
 
-Gold tiene un objetivo diferente: presentar los datos mediante un modelo dimensional compuesto por dimensiones y una tabla lógica de hechos.
+Gold tiene un objetivo diferente, el cual es presentar los datos mediante un modelo dimensional compuesto por dimensiones y una tabla lógica de hechos.
 
 Para este proyecto se optó por construir este modelo directamente mediante consultas sobre Silver, sin materializar una segunda copia física de los datos.
 
