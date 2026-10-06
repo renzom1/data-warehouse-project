@@ -83,6 +83,57 @@ Los scripts de validación se encuentran en:
 * [`scripts/silver/quality_checks.sql`](scripts/silver/quality_checks.sql)
 * [`scripts/gold/quality_checks.sql`](scripts/gold/quality_checks.sql)
 
+## Reproducible rebuild
+
+The warehouse can be rebuilt from this repository. The scripts are SQLCMD scripts and take two variables, both required and without a default:
+
+* `DatabaseName`: the target database.
+* `ProjectRoot`: absolute path of the repository root, without a trailing backslash (only used by `scripts/bronze/load.sql`).
+
+The scripts never drop a database: `init_database.sql` only creates the database and the three schemas if they do not exist. Run the rebuild against a dedicated test database first (for example `DataWarehouse_Test`) so that an existing database is never overwritten.
+
+### Prerequisites
+
+* SQL Server (developed and tested on SQL Server Express) and the `sqlcmd` utility.
+* A login that can create databases and run `BULK INSERT`.
+* The SQL Server service account must be able to read the `datasets` folder, because `BULK INSERT` reads the CSV files as that account.
+* The repository's source CSVs should be kept in the state documented by decision 6 in [`docs/decisions.md`](docs/decisions.md), including the corrected trailing line terminators for the two affected files.
+
+### Execution order
+
+| # | Script | Variables |
+|---|---|---|
+| 1 | `scripts/init_database.sql` | `DatabaseName` |
+| 2 | `scripts/bronze/ddl.sql` | `DatabaseName` |
+| 3 | `scripts/bronze/load.sql` | `DatabaseName`, `ProjectRoot` |
+| 4 | `scripts/silver/ddl.sql` | `DatabaseName` |
+| 5 | `scripts/silver/load.sql` | `DatabaseName` |
+| 6 | `scripts/silver/quality_checks.sql` | `DatabaseName` |
+| 7 | `scripts/gold/ddl.sql` | `DatabaseName` |
+| 8 | `scripts/gold/quality_checks.sql` | `DatabaseName` |
+
+### Usage
+
+`cmd.exe` (run from the repository root; shown for steps 1 and 3, the others only need `DatabaseName`):
+
+```text
+sqlcmd -S .\SQLEXPRESS -E -C -b -v DatabaseName="DataWarehouse_Test" -i scripts\init_database.sql
+sqlcmd -S .\SQLEXPRESS -E -C -b -v DatabaseName="DataWarehouse_Test" ProjectRoot="C:\path\to\data-warehouse-project" -i scripts\bronze\load.sql
+```
+
+Windows PowerShell 5.1 removes double quotes from arguments, which makes `sqlcmd` fail with `Invalid argument` when a value contains a drive letter. Wrap each assignment in single quotes so the double quotes reach `sqlcmd`:
+
+```powershell
+sqlcmd -S .\SQLEXPRESS -E -C -b -v 'DatabaseName="DataWarehouse_Test"' -i scripts\init_database.sql
+sqlcmd -S .\SQLEXPRESS -E -C -b -v 'DatabaseName="DataWarehouse_Test"' 'ProjectRoot="C:\path\to\data-warehouse-project"' -i scripts\bronze\load.sql
+```
+
+`-S` selects the server and `-C` trusts its certificate (local development). In SSMS, enable SQLCMD Mode and define the variables with `:setvar` instead of `-v`.
+
+### Verifying a rebuild
+
+The load procedures catch errors and print them instead of failing, so `sqlcmd` can return exit code 0 after a failed load. Check the printed output and the row counts. The expected counts and totals are in [`docs/rebuild_baseline.md`](docs/rebuild_baseline.md). The Silver birthdate check currently returns 15 birthdates before 1924; this is known and is documented there.
+
 ## Tecnologías
 
 * SQL Server
@@ -106,9 +157,12 @@ data-warehouse-project/
 │   ├── data_mart.png
 │   ├── integration_model.drawio
 │   ├── integration_model.png
-│   └── decisions.md
+│   ├── decisions.md
+│   └── rebuild_baseline.md
 │
 ├── scripts/
+│   ├── init_database.sql
+│   │
 │   ├── bronze/
 │   │   ├── ddl.sql
 │   │   └── load.sql
