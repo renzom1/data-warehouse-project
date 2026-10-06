@@ -24,7 +24,12 @@ desarrollo sin tener que eliminar manualmente las tablas
 existentes.
 */
 
-USE DataWarehouse;
+/*
+SQLCMD script: run it with -v DatabaseName="<database>". The variable is
+required and has no default.
+*/
+
+USE [$(DatabaseName)];
 GO
 
 IF OBJECT_ID('bronze.crm_cust_info', 'U') IS NOT NULL

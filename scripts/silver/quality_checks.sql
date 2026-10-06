@@ -36,6 +36,15 @@ Nota:
 
 
 /*
+SQLCMD script: run it with -v DatabaseName="<database>". The variable is
+required and has no default.
+*/
+
+USE [$(DatabaseName)];
+GO
+
+
+/*
 ===============================================================================
 CRM - CLIENTES
 ===============================================================================

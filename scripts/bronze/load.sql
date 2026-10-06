@@ -15,23 +15,37 @@ Además, se registra el tiempo de ejecución de cada carga y
 del proceso completo, y se incorpora manejo básico de errores
 mediante TRY/CATCH.
 
-CONFIGURACIÓN:
-    Antes de ejecutar este script, reemplazar <PROJECT_ROOT>
-    por la ruta local donde se encuentra el repositorio.
+CONFIGURATION (SQLCMD):
+    This is a sqlcmd script. Two scripting variables are required and have
+    no default:
 
-    Ejemplo:
-    C:\Users\<usuario>\Desktop\data-warehouse-project
+        DatabaseName   target database (for example DataWarehouse_Test)
+        ProjectRoot    absolute path of the repository root, with no
+                       trailing backslash
+
+    Example:
+
+        sqlcmd -S <server> -E -b ^
+               -v DatabaseName="DataWarehouse_Test" ProjectRoot="C:\path\to\data-warehouse-project" ^
+               -i scripts\bronze\load.sql
+
+    Notes:
+    - In SSMS, enable Query > SQLCMD Mode and define both variables with
+      :setvar above the script instead of using -v.
+    - BULK INSERT reads the files as the SQL Server service account, so that
+      account needs read access to the datasets folder.
+    - The resolved path is stored inside the procedure definition.
 */
 
 
 /*
 ------------------------------------------------------------
-Selecciona la base de datos donde se encuentra el Data
-Warehouse.
+Selects the target database, supplied through the sqlcmd
+variable DatabaseName.
 ------------------------------------------------------------
 */
 
-USE DataWarehouse;
+USE [$(DatabaseName)];
 GO
 
 
@@ -130,7 +144,7 @@ BEGIN
         TRUNCATE TABLE bronze.crm_cust_info;
 
         BULK INSERT bronze.crm_cust_info
-        FROM '<PROJECT_ROOT>\datasets\source_crm\cust_info.csv'
+        FROM '$(ProjectRoot)\datasets\source_crm\cust_info.csv'
         WITH (
             FIRSTROW = 2,
             FIELDTERMINATOR = ',',
@@ -159,7 +173,7 @@ BEGIN
         TRUNCATE TABLE bronze.crm_prd_info;
 
         BULK INSERT bronze.crm_prd_info
-        FROM '<PROJECT_ROOT>\datasets\source_crm\prd_info.csv'
+        FROM '$(ProjectRoot)\datasets\source_crm\prd_info.csv'
         WITH (
             FIRSTROW = 2,
             FIELDTERMINATOR = ',',
@@ -188,7 +202,7 @@ BEGIN
         TRUNCATE TABLE bronze.crm_sales_details;
 
         BULK INSERT bronze.crm_sales_details
-        FROM '<PROJECT_ROOT>\datasets\source_crm\sales_details.csv'
+        FROM '$(ProjectRoot)\datasets\source_crm\sales_details.csv'
         WITH (
             FIRSTROW = 2,
             FIELDTERMINATOR = ',',
@@ -226,7 +240,7 @@ BEGIN
         TRUNCATE TABLE bronze.erp_cust_az12;
 
         BULK INSERT bronze.erp_cust_az12
-        FROM '<PROJECT_ROOT>\datasets\source_erp\cust_az12.csv'
+        FROM '$(ProjectRoot)\datasets\source_erp\cust_az12.csv'
         WITH (
             FIRSTROW = 2,
             FIELDTERMINATOR = ',',
@@ -255,7 +269,7 @@ BEGIN
         TRUNCATE TABLE bronze.erp_loc_a101;
 
         BULK INSERT bronze.erp_loc_a101
-        FROM '<PROJECT_ROOT>\datasets\source_erp\loc_a101.csv'
+        FROM '$(ProjectRoot)\datasets\source_erp\loc_a101.csv'
         WITH (
             FIRSTROW = 2,
             FIELDTERMINATOR = ',',
@@ -284,7 +298,7 @@ BEGIN
         TRUNCATE TABLE bronze.erp_px_cat_g1v2;
 
         BULK INSERT bronze.erp_px_cat_g1v2
-        FROM '<PROJECT_ROOT>\datasets\source_erp\px_cat_g1v2.csv'
+        FROM '$(ProjectRoot)\datasets\source_erp\px_cat_g1v2.csv'
         WITH (
             FIRSTROW = 2,
             FIELDTERMINATOR = ',',
