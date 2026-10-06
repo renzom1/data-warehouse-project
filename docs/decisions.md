@@ -225,4 +225,59 @@ Un problema relacionado con la calidad o consistencia de un dato de origen deber
 
 ---
 
+## 6. Source CSV line terminators and completeness of Bronze ingestion
+
+### Decision
+
+The missing trailing line terminator (CRLF, matching the files' existing line endings) was added to two source files:
+
+* `datasets/source_crm/cust_info.csv`
+* `datasets/source_erp/cust_az12.csv`
+
+The `BULK INSERT` strategy was not changed.
+
+This is a reproducibility and ingestion decision. Bronze is meant to preserve the source rows, and the clean rebuild showed that it did not preserve all of them.
+
+### Justification
+
+During the reproducibility rebuild into a dedicated test database (`DataWarehouse_Test`), Bronze held one row fewer than the CSV files contain in two tables. In both cases the missing row was the last line of the file:
+
+| File | CSV data rows | Bronze rows | Missing final row |
+|---|---|---|---|
+| `cust_info.csv` | 18,494 | 18,493 | `cst_key = A01Ass` (no customer ID, like three other rows already in Bronze) |
+| `cust_az12.csv` | 18,484 | 18,483 | `AW00029483` (a customer with birthdate 1965-06-06 and an empty gender) |
+
+In both files the final line has no line terminator and ends with an empty field. With the existing `BULK INSERT` configuration, such a final row is not loaded, and no error is raised. The other four files load completely. That includes `px_cat_g1v2.csv`, which also ends without a line terminator, but whose last field is not empty. This cause was inferred from the pattern across the six source files; the parser's behavior was not tested in isolation.
+
+The counts in the existing `DataWarehouse` and in a from-scratch rebuild in `DataWarehouse_Test` were identical, so this is deterministic pipeline behavior, not random data loss.
+
+### Result
+
+After appending the line terminator to the two files and reloading `DataWarehouse_Test`:
+
+| Object | Before | After |
+|---|---|---|
+| `bronze.crm_cust_info` | 18,493 | 18,494 |
+| `bronze.erp_cust_az12` | 18,483 | 18,484 |
+| `silver.erp_cust_az12` | 18,483 | 18,484 |
+| `gold.dim_customers`, customer `29483`, `birthdate` | `NULL` | `1965-06-06` |
+
+The recovered `A01Ass` row stays in Bronze, because Bronze preserves the source data, and is filtered out in Silver because its customer ID is `NULL`. As a result `silver.crm_cust_info` and `gold.dim_customers` keep their previous counts. All other relevant counts and the `fact_sales` totals are unchanged. The full comparison is in [`rebuild_baseline.md`](rebuild_baseline.md).
+
+Each of the two files differs from its original only by the added final line terminator.
+
+### Consideration
+
+`px_cat_g1v2.csv` also ends without a line terminator. It was intentionally left unchanged because its final row loads correctly and no data loss was observed there.
+
+The 15 birthdates before 1924 reported by the Silver quality check were not modified. They are a separate data-quality question.
+
+### Limitation
+
+The correction is in the source files, not in the loader. A source file that is replaced by one ending the same way (no final line terminator and an empty last field) would behave the same way.
+
+The original `DataWarehouse` database was not modified as part of this work, so it still reflects the load that preceded the correction until it is rebuilt.
+
+---
+
 
