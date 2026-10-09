@@ -290,15 +290,15 @@ These decisions come from profiling `gold` before the analysis phase (`analysis/
 
 **Decision.** The main comparison window is 2011–2013. The 2010 tail and January 2014 are reported separately as context and never enter annual comparisons or trends.
 
-**Why it matters.** Mixing partial periods into year-over-year comparisons would create artificial changes, and January 2014 is not a representative month.
+**Justification** Mixing partial periods into year-over-year comparisons would create artificial changes, and January 2014 is not a representative month.
 
 ### 7.2 Order-level date for temporal analysis
 
 **Observed.** 19 fact lines have a `NULL` `order_date`. 13 orders contain both dated and `NULL`-dated lines, and 2 orders have no dated line at all. No order has more than one distinct non-`NULL` `order_date`.
 
-**Decision.** For temporal analysis, an order's date is the date shared by its dated lines (`MIN(order_date)` over the order). A `NULL`-dated line inherits that date. Only the 2 orders with no dated line (3 lines, revenue of 34) are treated as undated and reported separately. This is an analytical definition only. Silver and Gold are unchanged, and the 19 `NULL` lines remain a data-quality observation at line level.
+**Decision.** For temporal analysis, an order's date is the date shared by its dated lines (`MIN(order_date)` over the order). A `NULL`-dated line inherits that date. Only the 2 orders with no dated line (3 lines, revenue of 34) are treated as undated and reported separately.
 
-**Why it matters.** Counting lines by their own date would count 13 orders in two periods, so orders by period would not add up to the total (27,672 instead of 27,659), and revenue of 4,958 on orders with a known date would be lost from every time series. With the order-level date, lines, orders, units and revenue all reconcile.
+**Justification** Counting lines by their own date would count 13 orders in two periods, so orders by period would not add up to the total (27,672 instead of 27,659), and revenue of 4,958 on orders with a known date would be lost from every time series. With the order-level date, lines, orders, units and revenue all reconcile.
 
 ### 7.3 Suspicious historical birthdates
 
@@ -306,7 +306,7 @@ These decisions come from profiling `gold` before the analysis phase (`analysis/
 
 **Decision.** The 15 birthdates are left unchanged. The customers are not excluded from any general analysis. For the age analysis, age is measured at the customer's first order, so each customer falls in exactly one band, and the oldest band is labeled `90+ (data-quality flag)`, with a note that it consists entirely of these 15 customers. Customers with no birthdate form an "Unknown" age band.
 
-**Why it matters.** Excluding or correcting the dates would silently change the customer base. Showing the band with an explicit flag keeps the data intact while stopping a reader from treating that band as a real age segment.
+**Justification** Excluding or correcting the dates would silently change the customer base. Showing the band with an explicit flag keeps the data intact while stopping a reader from treating that band as a real age segment.
 
 ### 7.4 Meaning of `create_date`
 
@@ -314,15 +314,15 @@ These decisions come from profiling `gold` before the analysis phase (`analysis/
 
 **Decision.** `create_date` is not used as a customer acquisition or signup date. It reflects when the records were created or loaded, not when customers began buying. Customer cohorts and first-purchase analysis use the date of the customer's first order.
 
-**Why it matters.** Using `create_date` for tenure or acquisition cohorts would place every customer after their own purchases and produce meaningless results.
+**Justification** Using `create_date` for tenure or acquisition cohorts would place every customer after their own purchases and produce meaningless results.
 
 ### 7.5 Shipping and due dates
 
-**Observed.** Every dated line has the same pattern: shipping 7 days after the order date and due date 12 days after (one combination across 60,379 lines).
+**Observed.** Every dated line has the same pattern: shipping 7 days after the order date and due date 12 days after.
 
 **Decision.** No shipping-lag or on-time analysis is carried out.
 
-**Why it matters.** With no variation there is nothing to analyze, and any figure derived from it would describe how the dates were generated, not fulfilment performance.
+**Justification** With no variation there is nothing to analyze, and any figure derived from it would describe how the dates were generated, not fulfilment performance.
 
 ### 7.6 Repeat-purchase cohorts
 
@@ -330,7 +330,7 @@ These decisions come from profiling `gold` before the analysis phase (`analysis/
 
 **Decision.** Customers are grouped into cohorts by the year of their first order. Repeat rates are not compared across cohorts using the raw share of repeat buyers. Instead, "second order within N days" (N = 90, 180, 365) counts only customers whose first order is at least N days before the end of the data, and the number of eligible customers is always reported. The overall 37.1% is kept as descriptive context only and is not a conclusion.
 
-**Why it matters.** A raw repeat rate would make recent cohorts look worse simply because they were observed for less time. Eligibility-based measures compare customers over the same follow-up period.
+**Justification** A raw repeat rate would make recent cohorts look worse simply because they were observed for less time. Eligibility-based measures compare customers over the same follow-up period.
 
 ### 7.7 Analytical database
 
@@ -338,7 +338,7 @@ These decisions come from profiling `gold` before the analysis phase (`analysis/
 
 **Decision.** The analysis runs on `DataWarehouse_Test`. The original `DataWarehouse` is not reloaded or modified for now.
 
-**Why it matters.** Analysis results must come from the validated, corrected build. Running them on the original database would mix in a known ingestion difference.
+**Justification** Analysis results must come from the validated, corrected build. Running them on the original database would mix in a known ingestion difference.
 
 ---
 
