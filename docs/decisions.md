@@ -1,84 +1,84 @@
-# Decisiones técnicas
+# Technical decisions
 
-Este documento registra las principales decisiones tomadas durante el desarrollo del Data Warehouse, junto con su justificación y las limitaciones de cada enfoque.
+This document records the main decisions made while developing the Data Warehouse, together with their justification and the limitations of each approach.
 
-El objetivo es dejar constancia de las decisiones que afectan la arquitectura, así como mostrar el razonamiento detrás del modelado y procesamiento de los datos.
+Its purpose is to keep a record of the decisions that affect the architecture and to show the reasoning behind the modeling and processing of the data.
 
 ---
 
-## 1. Implementación de la capa Gold mediante views
+## 1. Implementing the Gold layer with views
 
-### Decisión
+### Decision
 
-La capa Gold se implementó mediante views de SQL Server construidas a partir de las tablas de la capa Silver.
+The Gold layer was implemented as SQL Server views built from the Silver layer tables.
 
-Las principales entidades de Gold son:
+The main Gold entities are:
 
 * `gold.dim_customers`
 * `gold.dim_products`
 * `gold.fact_sales`
 
-Estas views integran y reorganizan los datos previamente transformados en Silver para exponer un modelo dimensional orientado al análisis.
+These views integrate and reorganize the data previously transformed in Silver to expose a dimensional model oriented to analysis.
 
-### Justificación
+### Justification
 
-Silver contiene los datos ya limpiados y transformados, pero mantiene una organización principalmente relacionada con las distintas fuentes de origen.
+Silver holds data that is already cleaned and transformed, but it remains organized mainly around the different source systems.
 
-Gold tiene un objetivo diferente, el cual es presentar los datos mediante un modelo dimensional compuesto por dimensiones y una tabla lógica de hechos.
+Gold has a different purpose: to present the data through a dimensional model made up of dimensions and a logical fact table.
 
-Para este proyecto se optó por construir este modelo directamente mediante consultas sobre Silver, sin materializar una segunda copia física de los datos.
+For this project, the model was built directly through queries on Silver, without materializing a second physical copy of the data.
 
-Esto permite mantener una separación clara entre:
+This keeps a clear separation between:
 
-* **Silver:** datos transformados y preparados.
-* **Gold:** modelo orientado al consumo analítico.
+* **Silver:** transformed and prepared data.
+* **Gold:** model oriented to analytical consumption.
 
-Además, al utilizar views, los resultados de Gold se obtienen a partir del estado actual de las tablas Silver, sin requerir un proceso adicional de carga física de Gold.
+In addition, because views are used, Gold results are obtained from the current state of the Silver tables, with no extra process to physically load Gold.
 
-### Consideración
+### Consideration
 
-Esta implementación es adecuada para el alcance y objetivo de aprendizaje del proyecto, pero no debe interpretarse como una estrategia universal para Data Warehouses productivos.
+This implementation fits the scope and learning goal of the project, but it should not be read as a universal strategy for production Data Warehouses.
 
-En un entorno de mayor escala, podrían existir razones para materializar las dimensiones y la tabla de hechos, como necesidades de rendimiento, persistencia de claves, control explícito de las cargas o manejo de históricos.
+In a larger environment there could be reasons to materialize the dimensions and the fact table, such as performance needs, key persistence, explicit control of loads, or history handling.
 
-### Limitación
+### Limitation
 
-Las surrogate keys utilizadas en las dimensiones de este proyecto se generan dinámicamente mediante funciones como `ROW_NUMBER()`. Al formar parte de una view, estas claves no se almacenan como identificadores persistentes.
+The surrogate keys used in this project's dimensions are generated dynamically with functions such as `ROW_NUMBER()`. Because they are part of a view, these keys are not stored as persistent identifiers.
 
-Por lo tanto, la implementación representa el modelo dimensional conceptualmente, pero no reproduce todas las características que tendría un modelo dimensional físico en un entorno productivo.
+The implementation therefore represents the dimensional model conceptually, but it does not reproduce every characteristic that a physical dimensional model would have in a production environment.
 
 ---
 
-## 2. Uso de surrogate keys en las dimensiones
+## 2. Surrogate keys in the dimensions
 
-### Decisión
+### Decision
 
-Se utilizaron surrogate keys para identificar los registros de las dimensiones dentro del Data Warehouse:
+Surrogate keys were used to identify the dimension records within the Data Warehouse:
 
-* `customer_key` en `gold.dim_customers`
-* `product_key` en `gold.dim_products`
+* `customer_key` in `gold.dim_customers`
+* `product_key` in `gold.dim_products`
 
-Estas claves son independientes de los identificadores provenientes de los sistemas fuente, como `cst_id` y `prd_key`.
+These keys are independent of the identifiers coming from the source systems, such as `cst_id` and `prd_key`.
 
-### Justificación
+### Justification
 
-Los identificadores de los sistemas fuente pertenecen a los sistemas operacionales que originan los datos. El Data Warehouse, en cambio, necesita contar con identificadores propios para sus entidades.
+The identifiers from the source systems belong to the operational systems that originate the data. The Data Warehouse, in contrast, needs identifiers of its own for its entities.
 
-Esto nos permite desacoplar el modelo dimensional de los identificadores específicos de CRM y ERP, y facilita la integración de información proveniente de diferentes fuentes.
+This decouples the dimensional model from CRM- and ERP-specific identifiers and makes it easier to integrate information coming from different sources.
 
-Además, las surrogate keys permiten establecer las relaciones entre las dimensiones y la tabla de hechos mediante claves propias del Data Warehouse.
+In addition, surrogate keys make it possible to link the dimensions to the fact table through keys owned by the Data Warehouse.
 
-### Implementación
+### Implementation
 
-Las claves son generadas dinámicamente mediante `ROW_NUMBER()`.
+The keys are generated dynamically with `ROW_NUMBER()`.
 
-Para clientes:
+For customers:
 
 ```sql
 ROW_NUMBER() OVER (ORDER BY cst_id) AS customer_key
 ```
 
-Para productos:
+For products:
 
 ```sql
 ROW_NUMBER() OVER (
@@ -86,142 +86,142 @@ ROW_NUMBER() OVER (
 ) AS product_key
 ```
 
-### Limitación
+### Limitation
 
-Las claves generadas mediante `ROW_NUMBER()` no son persistentes. Si cambia el conjunto de registros o el criterio utilizado para ordenarlos, un mismo registro podría recibir una clave diferente.
+Keys generated with `ROW_NUMBER()` are not persistent. If the set of records or the ordering criterion changes, the same record could receive a different key.
 
-Esto es especialmente relevante porque las dimensiones y la tabla de hechos de Gold están implementadas como views.
+This is especially relevant because the Gold dimensions and fact table are implemented as views.
 
-Por este motivo, esta estrategia es suficiente para representar el modelo dimensional en el contexto de este proyecto, pero una implementación productiva requeriría un mecanismo de generación y persistencia de surrogate keys que mantuviera estable la identidad de cada entidad a lo largo del tiempo.
-
-
----
-
-## 3. CRM como fuente principal para la información de clientes
-
-### Decisión
-
-Para la construcción de `gold.dim_customers`, se estableció al CRM como la fuente principal (*master*) de información de clientes, mientras que el ERP se utiliza como fuente complementaria.
-
-La información proveniente de ambas fuentes se integra mediante los identificadores disponibles y se incorporan al modelo dimensional los atributos necesarios de cada sistema.
-
-En caso de existir información equivalente en ambas fuentes, se prioriza la proveniente del CRM para los atributos definidos como propios de esta fuente. Por ejemplo, el género del cliente utiliza el CRM como fuente principal.
-
-### Justificación
-
-Esta decisión permite establecer una regla explícita de precedencia entre las distintas fuentes de información.
-
-El CRM contiene una mayor cantidad de información directamente relacionada con la entidad cliente, mientras que el ERP aporta atributos adicionales que complementan dicha información.
-
-Definir una fuente principal evita que los valores provenientes de diferentes sistemas sean tratados como igualmente confiables sin establecer previamente cuál debe prevalecer ante posibles discrepancias.
-
-### Consideración
-
-La elección del CRM como fuente principal responde al contexto y a la estructura de datos de este proyecto. En un entorno real, la definición de un sistema como fuente maestra debería basarse en criterios propios del negocio, como la responsabilidad sobre el dato, los procesos que lo generan y las reglas de gobierno de datos establecidas por la organización.
-
-### Limitación
-
-La integración realizada depende de los identificadores y atributos disponibles en las fuentes proporcionadas para este proyecto. No se implementó un proceso completo de *Master Data Management* ni reglas avanzadas para resolver conflictos entre múltiples fuentes.
-
-Por lo tanto, la regla de precedencia aplicada representa una estrategia de integración adecuada para este modelo, pero no constituye por sí misma un sistema general de gestión de datos maestros.
+For this reason, this strategy is enough to represent the dimensional model in the context of this project, but a production implementation would need a mechanism to generate and persist surrogate keys so that the identity of each entity stays stable over time.
 
 
 ---
 
-## 4. Diseño y responsabilidades de las capas Bronze, Silver y Gold
+## 3. CRM as the primary source for customer information
 
-### Decisión
+### Decision
 
-El Data Warehouse se organizó en tres capas con responsabilidades diferenciadas:
+To build `gold.dim_customers`, the CRM was established as the primary (*master*) source of customer information, while the ERP is used as a complementary source.
 
-* **Bronze:** incorporación de los datos provenientes de las fuentes, manteniendo su estructura y contenido lo más cerca posible del origen.
-* **Silver:** limpieza, validación y transformación de los datos para obtener información consistente y preparada para su integración.
-* **Gold:** organización de los datos transformados mediante un modelo dimensional (de tipo star schema) orientado al consumo analítico.
+The information from both sources is integrated through the available identifiers, and the attributes needed from each system are added to the dimensional model.
+
+When equivalent information exists in both sources, the CRM value takes precedence for the attributes defined as owned by that source. For example, customer gender uses the CRM as its primary source.
+
+### Justification
+
+This decision sets an explicit precedence rule between the different information sources.
+
+The CRM holds more information directly related to the customer entity, while the ERP provides additional attributes that complement it.
+
+Defining a primary source prevents values coming from different systems from being treated as equally reliable without first establishing which one should prevail when they disagree.
+
+### Consideration
+
+Choosing the CRM as the primary source responds to the context and data structure of this project. In a real environment, defining a system as the master source should rest on business criteria, such as ownership of the data, the processes that generate it, and the data governance rules the organization has established.
+
+### Limitation
+
+The integration depends on the identifiers and attributes available in the sources provided for this project. A complete *Master Data Management* process or advanced rules for resolving conflicts between multiple sources were not implemented.
+
+The precedence rule applied is therefore an adequate integration strategy for this model, but it is not by itself a general master data management system.
+
+
+---
+
+## 4. Design and responsibilities of the Bronze, Silver and Gold layers
+
+### Decision
+
+The Data Warehouse was organized into three layers with distinct responsibilities:
+
+* **Bronze:** ingestion of the data coming from the sources, keeping its structure and content as close to the origin as practical.
+* **Silver:** cleaning, validation and transformation of the data to obtain consistent information prepared for integration.
+* **Gold:** organization of the transformed data in a dimensional model (star schema) oriented to analytical consumption.
 
 ### Bronze
 
-La capa Bronze recibe los datos de los archivos fuente mediante un *full load*.
+The Bronze layer receives the data from the source files through a *full load*.
 
-No se aplican transformaciones, reglas de negocio ni procesos de limpieza durante esta etapa. De esta forma, se conserva una representación de los datos de origen antes de aplicar modificaciones sobre ellos.
+No transformations, business rules or cleaning processes are applied at this stage. This preserves a representation of the source data before any modification is applied to it.
 
-Esta separación permite utilizar Bronze como punto de partida para las transformaciones posteriores. Si una transformación en Silver necesitara ser modificada o corregida, los datos originales seguirían disponibles en Bronze para volver a procesarlos.
+This separation lets Bronze serve as the starting point for later transformations. If a transformation in Silver needs to be changed or corrected, the original data remains available in Bronze to be reprocessed.
 
 ### Silver
 
-La capa Silver concentra las transformaciones necesarias para mejorar la calidad y consistencia de los datos.
+The Silver layer concentrates the transformations needed to improve the quality and consistency of the data.
 
-Entre otras operaciones, se realizan procesos de limpieza, estandarización, validación, eliminación de duplicados y tratamiento de valores inválidos.
+Among other operations, it performs cleaning, standardization, validation, removal of duplicates, and handling of invalid values.
 
-Estas operaciones se mantienen separadas de Bronze para conservar los datos de origen y evitar que las transformaciones realizadas durante el procesamiento alteren la representación original de los datos.
+These operations are kept separate from Bronze to preserve the source data and to prevent the processing from altering the original representation of the data.
 
-Además, concentrar las transformaciones en Silver permite separar la incorporación de los datos de su procesamiento y facilita la trazabilidad del flujo desde los datos originales hasta los datos preparados para análisis.
+In addition, concentrating the transformations in Silver separates ingestion from processing and makes the flow traceable from the original data to the data prepared for analysis.
 
 ### Gold
 
-La capa Gold presenta los datos mediante un modelo dimensional orientado al consumo analítico.
+The Gold layer presents the data through a dimensional model oriented to analytical consumption.
 
-Gold no introduce una nueva etapa de limpieza o transformación de los datos. Las operaciones realizadas principalmente consisten en relacionar la información previamente preparada en Silver y exponerla mediante las dimensiones y la tabla lógica de hechos del modelo.
+Gold does not introduce a new cleaning or transformation stage. Its operations mainly consist of relating the information already prepared in Silver and exposing it through the dimensions and the logical fact table of the model.
 
-Las entidades de Gold se implementaron como views de SQL Server. Esto permite obtener la información necesaria para el análisis a partir de las relaciones entre las tablas de Silver, sin necesidad de almacenar una nueva copia física de esos datos.
+The Gold entities were implemented as SQL Server views. This makes it possible to obtain the information needed for analysis from the relationships between the Silver tables, without storing a new physical copy of that data.
 
-Esta decisión mantiene una separación clara entre los datos transformados de Silver y su representación orientada al consumo en Gold, evitando duplicar físicamente información que ya se encuentra disponible en las capas anteriores.
+This decision keeps a clear separation between the transformed data in Silver and its consumption-oriented representation in Gold, avoiding the physical duplication of information that is already available in the earlier layers.
 
-### Consideración
+### Consideration
 
-La separación de responsabilidades entre las capas permite mantener un flujo de procesamiento claro:
+The separation of responsibilities between the layers keeps the processing flow clear:
 
-**Origen → Bronze → Silver → Gold → Consumo analítico**
+**Source → Bronze → Silver → Gold → Analytical consumption**
 
-Cada etapa tiene un propósito específico y las transformaciones se aplican progresivamente, manteniendo disponible el resultado de las etapas anteriores.
+Each stage has a specific purpose, and the transformations are applied progressively, keeping the result of the earlier stages available.
 
 ---
 
-## 5. Transformaciones y quality checks en Silver y Gold
+## 5. Transformations and quality checks in Silver and Gold
 
-### Decisión
+### Decision
 
-Las transformaciones y controles de calidad se concentraron principalmente en las capas Silver y Gold, pero con objetivos diferentes.
+The transformations and quality checks were concentrated mainly in the Silver and Gold layers, but with different goals.
 
-En **Silver**, los controles se orientan a la calidad y consistencia de los datos antes de utilizarlos en el modelo analítico.
+In **Silver**, the checks target the quality and consistency of the data before it is used in the analytical model.
 
-En **Gold**, los controles se orientan a verificar la integridad y coherencia del modelo dimensional construido a partir de los datos de Silver.
+In **Gold**, the checks target the integrity and coherence of the dimensional model built from the Silver data.
 
-### Transformaciones y controles en Silver
+### Transformations and checks in Silver
 
-Las transformaciones realizadas en Silver responden a problemas identificados en los datos de origen y a los requisitos necesarios para integrarlos posteriormente.
+The transformations done in Silver respond to problems identified in the source data and to the requirements for integrating it later.
 
-Entre las operaciones realizadas se encuentran:
+The operations performed include:
 
-* limpieza y normalización de valores;
-* tratamiento de espacios y valores inconsistentes;
-* conversión y validación de fechas;
-* eliminación de registros duplicados según criterios definidos;
-* tratamiento de valores nulos o inválidos;
-* aplicación de reglas de negocio específicas de cada entidad;
-* validación de relaciones y rangos esperados para determinados atributos.
+* cleaning and normalization of values;
+* handling of spaces and inconsistent values;
+* date conversion and validation;
+* removal of duplicate records according to defined criteria;
+* handling of null or invalid values;
+* application of business rules specific to each entity;
+* validation of relationships and expected ranges for certain attributes.
 
-Los controles de calidad se utilizan para verificar que estas transformaciones produzcan datos consistentes. Por ejemplo, se comprueban duplicados, valores nulos, rangos de fechas, valores inválidos y otras condiciones específicas de cada conjunto de datos.
+The quality checks verify that these transformations produce consistent data. For example, they check for duplicates, null values, date ranges, invalid values and other conditions specific to each dataset.
 
-De esta forma, Silver funciona como la etapa en la que los datos provenientes de las fuentes se convierten en información preparada para ser integrada y utilizada por las capas posteriores.
+In this way, Silver is the stage where the data coming from the sources becomes information prepared to be integrated and used by the later layers.
 
-### Controles en Gold
+### Checks in Gold
 
-Los controles realizados sobre Gold tienen un objetivo diferente. En lugar de centrarse principalmente en la limpieza de los datos, buscan comprobar que el modelo dimensional construido sea coherente.
+The checks run on Gold have a different goal. Rather than focusing on cleaning the data, they verify that the dimensional model built is coherent.
 
-Entre las validaciones realizadas se encuentran:
+The validations performed include:
 
-* existencia de las relaciones esperadas entre `fact_sales` y las dimensiones;
-* ausencia de registros de hechos sin una dimensión de cliente correspondiente;
-* ausencia de registros de hechos sin una dimensión de producto correspondiente;
-* unicidad de las surrogate keys de las dimensiones.
+* existence of the expected relationships between `fact_sales` and the dimensions;
+* absence of fact records with no matching customer dimension record;
+* absence of fact records with no matching product dimension record;
+* uniqueness of the dimension surrogate keys.
 
-Estos controles permiten verificar que la construcción de `gold.fact_sales` y su relación con `gold.dim_customers` y `gold.dim_products` produzcan un modelo consistente para el análisis.
+These checks verify that the construction of `gold.fact_sales` and its relationship with `gold.dim_customers` and `gold.dim_products` produce a model that is consistent for analysis.
 
-### Consideración
+### Consideration
 
-La separación entre los controles de Silver y Gold permite detectar problemas en diferentes etapas del flujo.
+Separating the Silver and Gold checks makes it possible to detect problems at different stages of the flow.
 
-Un problema relacionado con la calidad o consistencia de un dato de origen debería detectarse en Silver, mientras que un problema relacionado con la integración o las relaciones del modelo dimensional debería detectarse en Gold.
+A problem related to the quality or consistency of a source datum should be detected in Silver, while a problem related to the integration or the relationships of the dimensional model should be detected in Gold.
 
 ---
 

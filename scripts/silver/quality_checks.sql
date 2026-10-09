@@ -1,36 +1,34 @@
 /*
 ===============================================================================
-QUALITY CHECKS - CAPA SILVER
+QUALITY CHECKS - SILVER LAYER
 ===============================================================================
-Propósito:
-    Este script realiza controles de calidad sobre los datos cargados en la
-    capa Silver.
+Purpose:
+    This script runs quality checks on the data loaded into the Silver layer.
 
-    Las validaciones buscan detectar problemas relacionados con:
+    The checks look for problems related to:
 
-        - Claves nulas o duplicadas.
-        - Espacios innecesarios.
-        - Falta de estandarización.
-        - Valores nulos, negativos o inválidos.
-        - Fechas fuera de rango.
-        - Orden temporal incorrecto entre fechas.
-        - Inconsistencias entre campos relacionados.
+        - Null or duplicate keys.
+        - Unnecessary spaces.
+        - Lack of standardization.
+        - Null, negative or invalid values.
+        - Out-of-range dates.
+        - Incorrect chronological order between dates.
+        - Inconsistencies between related fields.
 
-Uso:
-    Ejecutar este script después de realizar la carga de la capa Silver.
+Usage:
+    Run this script after loading the Silver layer.
 
-    Las consultas no modifican los datos. Su objetivo es identificar posibles
-    problemas que deben investigarse antes de utilizar Silver como fuente
-    para la capa Gold.
+    The queries do not modify the data. Their goal is to identify potential
+    problems that must be investigated before using Silver as the source for
+    the Gold layer.
 
-Expectativa general:
-    Las consultas que indican "Sin resultados" deberían no devolver registros
-    cuando los datos cumplen con las reglas de calidad definidas.
+General expectation:
+    The queries marked "Expectation: No rows." should return no records when
+    the data meets the defined quality rules.
 
-Nota:
-    Algunas consultas utilizan SELECT DISTINCT para inspeccionar los valores
-    existentes y verificar visualmente que la estandarización haya producido
-    un conjunto consistente de valores.
+Note:
+    Some queries use SELECT DISTINCT to inspect the existing values and
+    visually verify that standardization produced a consistent set of values.
 ===============================================================================
 */
 
@@ -46,16 +44,16 @@ GO
 
 /*
 ===============================================================================
-CRM - CLIENTES
+CRM - CUSTOMERS
 ===============================================================================
 */
 
--- Verificar claves nulas o duplicadas
--- Expectativa: Sin resultados.
+-- Check for null or duplicate keys
+-- Expectation: No rows.
 --
--- cst_id funciona como identificador del cliente dentro de esta tabla.
--- No debería existir más de un registro para el mismo cliente después de
--- aplicar la deduplicación realizada durante la carga de Silver.
+-- cst_id works as the customer identifier within this table.
+-- There should be no more than one record for the same customer after the
+-- deduplication performed during the Silver load.
 
 SELECT
     cst_id,
@@ -66,12 +64,12 @@ HAVING COUNT(*) > 1
     OR cst_id IS NULL;
 
 
--- Verificar espacios innecesarios
--- Expectativa: Sin resultados.
+-- Check for unnecessary spaces
+-- Expectation: No rows.
 --
--- Se comprueba que cst_key no contenga espacios al principio o al final.
--- Esto es importante porque cst_key se utiliza posteriormente para relacionar
--- información proveniente de diferentes fuentes.
+-- Verifies that cst_key has no leading or trailing spaces.
+-- This matters because cst_key is later used to link information coming from
+-- different sources.
 
 SELECT
     cst_key
@@ -79,13 +77,13 @@ FROM silver.crm_cust_info
 WHERE cst_key != TRIM(cst_key);
 
 
--- Verificar estandarización del estado civil
+-- Check marital status standardization
 --
--- Esta consulta permite inspeccionar los valores existentes después de la
--- transformación realizada durante la carga de Silver.
+-- This query lets you inspect the existing values after the transformation
+-- done during the Silver load.
 --
--- Los valores esperados corresponden a las categorías definidas durante
--- la transformación, por ejemplo: Single, Married y N/A.
+-- The expected values correspond to the categories defined during the
+-- transformation, for example: Single, Married and N/A.
 
 SELECT DISTINCT
     cst_marital_status
@@ -94,15 +92,15 @@ FROM silver.crm_cust_info;
 
 /*
 ===============================================================================
-CRM - PRODUCTOS
+CRM - PRODUCTS
 ===============================================================================
 */
 
--- Verificar claves nulas o duplicadas
--- Expectativa: Sin resultados.
+-- Check for null or duplicate keys
+-- Expectation: No rows.
 --
--- prd_id identifica cada registro de producto y se espera que sea único
--- y no nulo dentro de Silver.
+-- prd_id identifies each product record and is expected to be unique and
+-- non-null within Silver.
 
 SELECT
     prd_id,
@@ -113,8 +111,8 @@ HAVING COUNT(*) > 1
     OR prd_id IS NULL;
 
 
--- Verificar espacios innecesarios en el nombre del producto
--- Expectativa: Sin resultados.
+-- Check for unnecessary spaces in the product name
+-- Expectation: No rows.
 
 SELECT
     prd_nm
@@ -122,11 +120,11 @@ FROM silver.crm_prd_info
 WHERE prd_nm != TRIM(prd_nm);
 
 
--- Verificar costos nulos o negativos
--- Expectativa: Sin resultados.
+-- Check for null or negative costs
+-- Expectation: No rows.
 --
--- El costo de un producto no debería ser negativo ni quedar NULL después
--- de aplicar la regla de transformación correspondiente.
+-- A product cost should be neither negative nor NULL after applying the
+-- corresponding transformation rule.
 
 SELECT
     prd_cost
@@ -135,24 +133,23 @@ WHERE prd_cost < 0
     OR prd_cost IS NULL;
 
 
--- Verificar estandarización de la línea de producto
+-- Check product line standardization
 --
--- Permite inspeccionar los valores resultantes después de convertir los
--- códigos originales a valores descriptivos.
+-- Lets you inspect the resulting values after converting the original codes
+-- to descriptive values.
 
 SELECT DISTINCT
     prd_line
 FROM silver.crm_prd_info;
 
 
--- Verificar consistencia temporal de las versiones de producto
--- Expectativa: Sin resultados.
+-- Check the chronological consistency of product versions
+-- Expectation: No rows.
 --
--- La fecha de finalización de una versión no debería ser anterior a su
--- fecha de inicio.
+-- The end date of a version should not be earlier than its start date.
 --
--- Esta validación está relacionada con el cálculo de prd_end_dt realizado
--- mediante LEAD durante la transformación de Bronze a Silver.
+-- This check is related to the calculation of prd_end_dt using LEAD during
+-- the Bronze to Silver transformation.
 
 SELECT
     *
@@ -162,29 +159,28 @@ WHERE prd_end_dt < prd_start_dt;
 
 /*
 ===============================================================================
-CRM - VENTAS
+CRM - SALES
 ===============================================================================
 */
 
 
 /*
-Verificar fechas inválidas en la fuente Bronze
+Check for invalid dates in the Bronze source
 -----------------------------------------------
 
-Esta consulta se ejecuta sobre Bronze porque busca identificar valores
-problemáticos en los datos originales antes de su conversión a DATE durante
-la carga de Silver.
+This query runs against Bronze because it looks for problematic values in the
+original data before their conversion to DATE during the Silver load.
 
-Las fechas de Bronze se almacenan como enteros en formato YYYYMMDD.
+Bronze dates are stored as integers in YYYYMMDD format.
 
-Se consideran inválidos, entre otros casos:
-    - Valores menores que 19000101.
-    - Valores mayores que 20500101.
-    - Valores con una longitud distinta de 8 dígitos.
-    - Valores iguales o menores que 0.
+The following are considered invalid, among other cases:
+    - Values lower than 19000101.
+    - Values greater than 20500101.
+    - Values with a length other than 8 digits.
+    - Values equal to or lower than 0.
 
-La consulta permite verificar la calidad de la fuente original y comprobar
-qué valores fueron tratados durante la transformación.
+The query lets you verify the quality of the original source and check which
+values were handled during the transformation.
 */
 
 SELECT
@@ -197,16 +193,15 @@ WHERE sls_due_dt <= 0
 
 
 /*
-Verificar orden cronológico de las fechas
+Check the chronological order of the dates
 ------------------------------------------
 
-Expectativa: Sin resultados.
+Expectation: No rows.
 
-La fecha de orden no debería ser posterior a la fecha de envío ni a la
-fecha de vencimiento.
+The order date should not be later than the shipping date or the due date.
 
-Esto permite detectar inconsistencias temporales en los datos de ventas
-ya transformados en Silver.
+This detects temporal inconsistencies in the sales data already transformed in
+Silver.
 */
 
 SELECT
@@ -217,21 +212,21 @@ WHERE sls_order_dt > sls_ship_dt
 
 
 /*
-Verificar consistencia entre ventas, cantidad y precio
+Check consistency between sales, quantity and price
 -------------------------------------------------------
 
-Expectativa: Sin resultados.
+Expectation: No rows.
 
-La relación esperada es:
+The expected relationship is:
 
-    ventas = cantidad × precio
+    sales = quantity × price
 
-Además de comprobar esta relación, se verifican:
-    - Valores NULL.
-    - Valores menores o iguales a cero.
+Besides checking this relationship, the query also checks:
+    - NULL values.
+    - Values lower than or equal to zero.
 
-DISTINCT permite mostrar únicamente combinaciones diferentes de valores
-problemáticos, evitando repetir exactamente la misma combinación varias veces.
+DISTINCT shows only the different combinations of problematic values, avoiding
+repeating exactly the same combination several times.
 */
 
 SELECT DISTINCT
@@ -254,24 +249,23 @@ ORDER BY
 
 /*
 ===============================================================================
-ERP - CLIENTES
+ERP - CUSTOMERS
 ===============================================================================
 */
 
 
 /*
-Verificar fechas de nacimiento fuera de rango
+Check for out-of-range birthdates
 ----------------------------------------------
 
-Expectativa:
-    Las fechas deberían encontrarse entre 1924-01-01 (lo asumimos posible) 
-    y la fecha actual.
+Expectation:
+    Dates should fall between 1924-01-01 (assumed to be possible)
+    and the current date.
 
-Esta validación busca identificar fechas de nacimiento que no resulten
-razonables para el conjunto de datos utilizado en el proyecto.
+This check looks for birthdates that are not reasonable for the dataset used
+in the project.
 
-El límite inferior de 1924 corresponde al rango definido para este control
-de calidad.
+The lower bound of 1924 is the range defined for this quality check.
 */
 
 SELECT DISTINCT
@@ -282,14 +276,14 @@ WHERE bdate < '1924-01-01'
 
 
 /*
-Verificar estandarización del género
+Check gender standardization
 -------------------------------------
 
-Permite inspeccionar los valores existentes después de la normalización
-realizada durante la carga de Silver.
+Lets you inspect the existing values after the normalization done during the
+Silver load.
 
-Los valores deberían corresponder a las categorías definidas en la
-transformación, como Female, Male y N/A.
+The values should correspond to the categories defined in the transformation,
+such as Female, Male and N/A.
 */
 
 SELECT DISTINCT
@@ -299,19 +293,19 @@ FROM silver.erp_cust_az12;
 
 /*
 ===============================================================================
-ERP - UBICACIONES
+ERP - LOCATIONS
 ===============================================================================
 */
 
 
 /*
-Verificar estandarización de países
+Check country standardization
 ------------------------------------
 
-Permite inspeccionar los valores existentes después de normalizar los
-códigos de país y tratar los valores NULL o vacíos.
+Lets you inspect the existing values after normalizing the country codes and
+handling NULL or empty values.
 
-La consulta se ordena para facilitar la inspección de los resultados.
+The query is ordered to make the results easier to inspect.
 */
 
 SELECT DISTINCT
@@ -322,16 +316,16 @@ ORDER BY cntry;
 
 /*
 ===============================================================================
-ERP - CATEGORÍAS DE PRODUCTOS
+ERP - PRODUCT CATEGORIES
 ===============================================================================
 */
 
 
--- Verificar espacios innecesarios
--- Expectativa: Sin resultados.
+-- Check for unnecessary spaces
+-- Expectation: No rows.
 --
--- Aunque esta tabla no recibe transformaciones durante la carga a Silver,
--- se verifica que sus campos de texto no contengan espacios innecesarios.
+-- Although this table receives no transformations during the Silver load,
+-- its text fields are checked for unnecessary spaces.
 
 SELECT
     *
@@ -341,10 +335,10 @@ WHERE cat != TRIM(cat)
    OR maintenance != TRIM(maintenance);
 
 
--- Verificar estandarización del campo de mantenimiento
+-- Check standardization of the maintenance field
 --
--- Permite inspeccionar los valores existentes en la fuente y detectar
--- posibles inconsistencias o categorías inesperadas.
+-- Lets you inspect the existing values in the source and detect possible
+-- inconsistencies or unexpected categories.
 
 SELECT DISTINCT
     maintenance

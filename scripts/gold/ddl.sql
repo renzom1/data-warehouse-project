@@ -1,54 +1,52 @@
 /*
 ===============================================================================
-DDL Script: Creación de views de la capa Gold
+DDL Script: Gold layer view creation
 ===============================================================================
-Propósito:
-    Este script crea las vistas que conforman la capa Gold del Data Warehouse.
+Purpose:
+    This script creates the views that make up the Gold layer of the Data
+    Warehouse.
 
-    La capa Gold representa la capa de consumo analítico y organiza los datos
-    mediante un modelo dimensional de tipo Star Schema, compuesto por:
+    The Gold layer is the analytical consumption layer and organizes the data
+    in a Star Schema dimensional model made up of:
 
         - gold.dim_customers
         - gold.dim_products
         - gold.fact_sales
 
-    A diferencia de las capas Bronze y Silver, donde los datos se almacenan
-    físicamente en tablas, la capa Gold se implementa mediante vistas que
-    consultan y combinan los datos transformados de la capa Silver.
+    Unlike the Bronze and Silver layers, where data is physically stored in
+    tables, the Gold layer is implemented as views that query and combine the
+    transformed data of the Silver layer.
 
-    Las vistas:
-        - integran información proveniente de diferentes fuentes;
-        - generan claves sustitutas para las dimensiones;
-        - seleccionan únicamente los registros de producto vigentes;
-        - relacionan los hechos de ventas con las dimensiones mediante sus
-          claves correspondientes;
-        - exponen una estructura preparada para análisis y reporting.
+    The views:
+        - integrate information coming from different sources;
+        - generate surrogate keys for the dimensions;
+        - select only the current product records;
+        - link the sales facts to the dimensions through their corresponding
+          keys;
+        - expose a structure ready for analysis and reporting.
 
-Uso:
-    - Ejecutar este script después de haber cargado y validado la capa Silver.
-    - Las vistas pueden consultarse directamente para realizar análisis SQL
-      y construir reportes (algo que voy a hacer más adelante).
-    - El script puede ejecutarse nuevamente durante el desarrollo, ya que
-      elimina las vistas existentes antes de crearlas.
+Usage:
+    - Run this script after the Silver layer has been loaded and validated.
+    - The views can be queried directly for SQL analysis and reporting.
+    - The script can be run again during development, since it drops the
+      existing views before creating them.
 ===============================================================================
 */
 
 
 /*
 ===============================================================================
-Creación de dimensión: gold.dim_customers
+Dimension creation: gold.dim_customers
 ===============================================================================
-Propósito:
-    Construir la dimensión de clientes integrando información proveniente de
-    CRM y ERP.
+Purpose:
+    Build the customer dimension by integrating information from CRM and ERP.
 
-    CRM constituye la fuente principal para la información del cliente.
-    Los datos provenientes de ERP se utilizan como enriquecimiento y como
-    fuente alternativa cuando determinada información no está disponible
-    en CRM.
+    CRM is the primary source for customer information. ERP data is used as
+    enrichment and as a fallback source when certain information is not
+    available in CRM.
 
-    Se genera una clave sustituta (customer_key) mediante ROW_NUMBER() para
-    utilizarla como identificador del cliente dentro del modelo dimensional.
+    A surrogate key (customer_key) is generated with ROW_NUMBER() to be used
+    as the customer identifier within the dimensional model.
 ===============================================================================
 */
 
@@ -76,9 +74,9 @@ SELECT
     ci.cst_marital_status AS marital_status,
 
     /*
-        CRM es la fuente principal para el género.
-        Cuando CRM contiene 'n/a', se utiliza el valor disponible en ERP.
-        Si tampoco existe un valor válido en ERP, se conserva 'n/a'.
+        CRM is the primary source for gender.
+        When CRM contains 'n/a', the value available in ERP is used.
+        If ERP has no valid value either, 'n/a' is kept.
     */
     CASE
         WHEN ci.cst_gndr != 'n/a' THEN ci.cst_gndr
@@ -91,14 +89,14 @@ SELECT
 FROM silver.crm_cust_info ci
 
 /*
-    ERP aporta información adicional del cliente, como fecha de nacimiento
-    y género, utilizando la clave del cliente como criterio de integración.
+    ERP provides additional customer information, such as birthdate and
+    gender, using the customer key as the integration criterion.
 */
 LEFT JOIN silver.erp_cust_az12 ca
     ON ci.cst_key = ca.cid
 
 /*
-    ERP aporta además información geográfica del cliente.
+    ERP also provides the customer's geographic information.
 */
 LEFT JOIN silver.erp_loc_a101 la
     ON ci.cst_key = la.cid;
@@ -107,18 +105,17 @@ GO
 
 /*
 ===============================================================================
-Creación de dimensión: gold.dim_products
+Dimension creation: gold.dim_products
 ===============================================================================
-Propósito:
-    Construir la dimensión de productos integrando la información de productos
-    proveniente de CRM con la información de categorías proveniente de ERP.
+Purpose:
+    Build the product dimension by integrating the product information from
+    CRM with the category information from ERP.
 
-    Solo se incluyen los registros correspondientes a la versión vigente de
-    cada producto. Las versiones históricas se excluyen mediante el filtro
-    sobre prd_end_dt.
+    Only the records for the current version of each product are included.
+    Historical versions are excluded through the filter on prd_end_dt.
 
-    Se genera una clave sustituta (product_key) mediante ROW_NUMBER() para
-    utilizarla como identificador del producto dentro del modelo dimensional.
+    A surrogate key (product_key) is generated with ROW_NUMBER() to be used
+    as the product identifier within the dimensional model.
 ===============================================================================
 */
 
@@ -146,15 +143,14 @@ SELECT
 FROM silver.crm_prd_info pn
 
 /*
-    Se incorpora información de categorías y subcategorías proveniente
-    del sistema ERP.
+    Category and subcategory information from the ERP system is added.
 */
 LEFT JOIN silver.erp_px_cat_g1v2 pc
     ON pn.cat_id = pc.id
 
 /*
-    Se conservan únicamente las versiones actualmente vigentes de los
-    productos. Los registros históricos poseen una fecha de finalización.
+    Only the currently active product versions are kept. Historical records
+    have an end date.
 */
 WHERE pn.prd_end_dt IS NULL;
 GO
@@ -162,18 +158,16 @@ GO
 
 /*
 ===============================================================================
-Creación de tabla de hechos: gold.fact_sales
+Fact table creation: gold.fact_sales
 ===============================================================================
-Propósito:
-    Construir la vista de hechos de ventas a partir de los datos transformados
-    de Silver.
+Purpose:
+    Build the sales fact view from the transformed Silver data.
 
-    La vista relaciona cada operación de venta con las dimensiones de productos
-    y clientes mediante sus claves sustitutas.
+    The view links each sales transaction to the product and customer
+    dimensions through their surrogate keys.
 
-    De esta manera, fact_sales constituye la tabla de hechos lógica del modelo
-    estrella y contiene las métricas y fechas necesarias para el análisis de
-    las ventas.
+    In this way, fact_sales is the logical fact table of the star schema and
+    holds the metrics and dates needed for sales analysis.
 ===============================================================================
 */
 
@@ -196,15 +190,15 @@ SELECT
 FROM silver.crm_sales_details sd
 
 /*
-    Se obtiene la clave sustituta del producto a partir de la clave natural
-    almacenada en los datos de ventas.
+    The product surrogate key is obtained from the natural key stored in the
+    sales data.
 */
 LEFT JOIN gold.dim_products pr
     ON sd.sls_prd_key = pr.product_number
 
 /*
-    Se obtiene la clave sustituta del cliente a partir del identificador
-    del cliente presente en los datos de ventas.
+    The customer surrogate key is obtained from the customer identifier
+    present in the sales data.
 */
 LEFT JOIN gold.dim_customers cu
     ON sd.sls_cust_id = cu.customer_id;

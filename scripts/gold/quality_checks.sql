@@ -1,23 +1,23 @@
 /*
 ===============================================================================
-Quality Checks: Capa Gold
+Quality Checks: Gold layer
 ===============================================================================
-Propósito:
-    Este script realiza controles de calidad sobre la capa Gold para validar
-    la integridad y consistencia del modelo dimensional.
+Purpose:
+    This script runs quality checks on the Gold layer to validate the
+    integrity and consistency of the dimensional model.
 
-    Los controles principales verifican:
+    The main checks verify:
 
-        - Unicidad de las surrogate keys en las dimensiones.
-        - Integridad referencial entre la tabla de hechos y las dimensiones.
-        - Existencia de relaciones válidas entre los elementos del modelo
-          estrella.
+        - Uniqueness of the surrogate keys in the dimensions.
+        - Referential integrity between the fact table and the dimensions.
+        - Existence of valid relationships between the elements of the
+          star schema.
 
-Uso:
-    - Ejecutar estos controles después de crear las vistas de la capa Gold.
-    - Las consultas que verifican unicidad no deberían devolver resultados.
-    - Cualquier registro devuelto por el control de integridad referencial
-      debe ser investigado para determinar el origen de la discrepancia.
+Usage:
+    - Run these checks after creating the Gold layer views.
+    - The uniqueness queries should return no rows.
+    - Any row returned by the referential integrity check must be
+      investigated to determine the source of the discrepancy.
 ===============================================================================
 */
 
@@ -33,16 +33,16 @@ GO
 
 /*
 ===============================================================================
-Verificación de gold.dim_customers
+Check: gold.dim_customers
 ===============================================================================
-Objetivo:
-    Verificar que customer_key sea único dentro de la dimensión de clientes.
+Objective:
+    Verify that customer_key is unique within the customer dimension.
 
-    La clave sustituta identifica cada registro de la dimensión y, por lo tanto,
-    no debería existir más de un registro con el mismo valor.
+    The surrogate key identifies each dimension record, so no more than one
+    record should have the same value.
 
-Resultado esperado:
-    La consulta no debería devolver resultados.
+Expected result:
+    The query should return no rows.
 ===============================================================================
 */
 
@@ -56,13 +56,13 @@ HAVING COUNT(*) > 1;
 
 /*
 ===============================================================================
-Verificación de gold.dim_products
+Check: gold.dim_products
 ===============================================================================
-Objetivo:
-    Verificar que product_key sea único dentro de la dimensión de productos.
+Objective:
+    Verify that product_key is unique within the product dimension.
 
-Resultado esperado:
-    La consulta no debería devolver resultados.
+Expected result:
+    The query should return no rows.
 ===============================================================================
 */
 
@@ -76,25 +76,23 @@ HAVING COUNT(*) > 1;
 
 /*
 ===============================================================================
-Verificación de gold.fact_sales
+Check: gold.fact_sales
 ===============================================================================
-Objetivo:
-    Verificar la integridad de las relaciones entre la tabla de hechos y las
-    dimensiones de clientes y productos.
+Objective:
+    Verify the integrity of the relationships between the fact table and the
+    customer and product dimensions.
 
-    Cada registro de ventas debería poder asociarse con un cliente y un
-    producto existentes en las dimensiones correspondientes.
+    Every sales record should be linkable to an existing customer and an
+    existing product in the corresponding dimensions.
 
-    Se utiliza LEFT JOIN para conservar todos los registros de fact_sales y
-    detectar aquellos que no encuentran una correspondencia en alguna de las
-    dimensiones.
+    A LEFT JOIN is used to keep all fact_sales records and detect those with
+    no match in one of the dimensions.
 
-Resultado esperado:
-    La consulta no debería devolver resultados.
+Expected result:
+    The query should return no rows.
 
-    Cualquier registro devuelto indica que una venta no pudo asociarse
-    correctamente con la dimensión de clientes, la dimensión de productos,
-    o ambas.
+    Any row returned means that a sale could not be linked correctly to the
+    customer dimension, the product dimension, or both.
 ===============================================================================
 */
 

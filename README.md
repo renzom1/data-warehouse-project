@@ -1,19 +1,19 @@
 # Data Warehouse
 
-## Descripción
+## Overview
 
-Construcción de un Data Warehouse en SQL Server para aplicar conceptos fundamentales de Data Engineering y modelado dimensional.
+A SQL Server Data Warehouse built to apply core Data Engineering concepts and dimensional modeling, followed by an analytical layer on top of it.
 
-El proyecto implementa una arquitectura Medallion compuesta por las capas Bronze, Silver y Gold. Los datos provenientes de fuentes CRM y ERP son incorporados, transformados, integrados y finalmente organizados en un modelo dimensional orientado al análisis.
+The project implements a Medallion architecture made up of Bronze, Silver and Gold layers. Data coming from CRM and ERP sources is ingested, transformed, integrated and finally organized in a dimensional model oriented to analysis.
 
-El foco del proyecto estuvo en comprender y aplicar conceptos de integración de datos, transformación y validación, modelado dimensional, surrogate keys y controles de calidad a lo largo del flujo de datos.
+The project focuses on data integration, transformation and validation, dimensional modeling, surrogate keys, quality checks throughout the data flow, and a repeatable rebuild from the repository alone. Its current phase uses the validated Gold layer to answer business questions with SQL.
 
-## Arquitectura
+## Architecture
 
-El flujo de datos se organiza de la siguiente manera:
+The data flows as follows:
 
 ```text
-Fuentes CRM / ERP
+CRM / ERP sources
        │
        ▼
     Bronze
@@ -25,60 +25,74 @@ Fuentes CRM / ERP
      Gold
        │
        ▼
-Consumo analítico
+Analytical layer (SQL)
 ```
 
-Cada capa tiene una responsabilidad específica:
+Each layer has a specific responsibility:
 
-* **Bronze:** incorpora los datos de las fuentes manteniendo su estructura y contenido lo más cerca posible del origen.
-* **Silver:** realiza la limpieza, validación, estandarización y transformación de los datos.
-* **Gold:** integra los datos transformados y los presenta mediante un modelo dimensional orientado al análisis.
+* **Bronze:** ingests the source data, keeping its structure and content as close to the origin as practical.
+* **Silver:** cleans, validates, standardizes and transforms the data.
+* **Gold:** integrates the transformed data and presents it through a dimensional model oriented to analysis.
+* **Analytical layer:** SQL scripts that answer business questions using the Gold layer.
 
-### Flujo de datos
+### Data flow
 
-El siguiente diagrama muestra el recorrido de los datos desde las fuentes hasta la capa Gold:
+The following diagram shows the path of the data from the sources to the Gold layer:
 
-![Flujo de datos](docs/data_flow.png)
-
-
-### Integración de fuentes
-
-La integración entre las diferentes fuentes CRM y ERP se encuentra representada en el siguiente modelo:
-
-![Integración de fuentes](docs/integration_model.png)
+![Data flow](docs/data_flow.png)
 
 
-## Modelo dimensional
+### Source integration
 
-La capa Gold representa un modelo dimensional compuesto por:
+The integration between the CRM and ERP sources is represented in the following model:
+
+![Source integration](docs/integration_model.png)
+
+
+## Dimensional model
+
+The Gold layer is a dimensional model made up of:
 
 * `gold.dim_customers`
 * `gold.dim_products`
 * `gold.fact_sales`
 
-Las dimensiones utilizan surrogate keys propias del Data Warehouse para establecer las relaciones con la tabla de hechos.
+The dimensions use surrogate keys owned by the Data Warehouse to relate to the fact table.
 
-En este proyecto, las entidades de Gold se implementaron como **views de SQL Server**, por lo que el modelo dimensional se construye lógicamente a partir de los datos disponibles en Silver sin almacenar una nueva copia física de la información.
+In this project, the Gold entities are implemented as **SQL Server views**, so the dimensional model is built logically from the data available in Silver, without storing a new physical copy of the information. The trade-offs of this choice, including the non-persistent surrogate keys, are discussed in [`docs/decisions.md`](docs/decisions.md).
 
-### Modelo de datos
+### Data model
 
-El modelo dimensional se encuentra representado en el siguiente diagrama:
+The dimensional model is represented in the following diagram:
 
-![Modelo dimensional](docs/data_mart.png)
+![Dimensional model](docs/data_mart.png)
 
 
-## Controles de calidad
+## Quality checks
 
-Se implementaron controles de calidad en las capas Silver y Gold con objetivos diferentes.
+Quality checks were implemented in the Silver and Gold layers with different goals.
 
-En **Silver**, los controles verifican la calidad y consistencia de los datos luego de aplicar las transformaciones, incluyendo duplicados, valores nulos, fechas inválidas y otras condiciones específicas de cada entidad.
+In **Silver**, the checks verify the quality and consistency of the data after the transformations, including duplicates, null values, invalid dates and other conditions specific to each entity.
 
-En **Gold**, los controles verifican la integridad del modelo dimensional, incluyendo la correspondencia entre los registros de la tabla de hechos y sus dimensiones y la unicidad de las surrogate keys.
+In **Gold**, the checks verify the integrity of the dimensional model, including the match between fact table records and their dimensions and the uniqueness of the surrogate keys.
 
-Los scripts de validación se encuentran en:
+The validation scripts are located in:
 
 * [`scripts/silver/quality_checks.sql`](scripts/silver/quality_checks.sql)
 * [`scripts/gold/quality_checks.sql`](scripts/gold/quality_checks.sql)
+
+## Analytical layer
+
+The analysis runs on top of the Gold layer and is organized as numbered, read-only SQL scripts in [`analysis/`](analysis/). Each script states its business question, the data it needs, the grain, the metric definitions, the method and its caveats.
+
+| Script | Purpose |
+|---|---|
+| [`00_data_profile.sql`](analysis/00_data_profile.sql) | Control totals and the data-quality facts that every other analysis depends on. It runs no business analysis. |
+| [`01_revenue_trends.sql`](analysis/01_revenue_trends.sql) | Revenue, units and orders over time, seasonality, and whether growth comes from more orders or a higher order value. |
+
+Planned lines of analysis: product mix, revenue concentration, geographic distribution, customer demographics, and repeat purchasing with RFM segmentation.
+
+The analytical conventions that come out of the data profiling (analysis window, order dating, the meaning of `create_date`, repeat-purchase cohorts) are recorded in decision 7 of [`docs/decisions.md`](docs/decisions.md). None of them changes Silver or Gold.
 
 ## Reproducible rebuild
 
@@ -131,7 +145,7 @@ sqlcmd -S .\SQLEXPRESS -E -C -b -v 'DatabaseName="DataWarehouse_Test"' 'ProjectR
 
 The load procedures catch errors and print them instead of failing, so `sqlcmd` can return exit code 0 after a failed load. Check the printed output and the row counts. The expected counts and totals are in [`docs/rebuild_baseline.md`](docs/rebuild_baseline.md). The Silver birthdate check currently returns 15 birthdates before 1924; this is known and is documented there.
 
-## Tecnologías
+## Technologies
 
 * SQL Server
 * T-SQL
@@ -139,7 +153,7 @@ The load procedures catch errors and print them instead of failing, so `sqlcmd` 
 * Dimensional Modeling
 * Git / GitHub
 
-## Estructura del repositorio
+## Repository structure
 
 ```text
 data-warehouse-project/
@@ -147,16 +161,6 @@ data-warehouse-project/
 ├── datasets/
 │   ├── source_crm/
 │   └── source_erp/
-│
-├── docs/
-│   ├── data_flow.drawio
-│   ├── data_flow.png
-│   ├── data_mart.drawio
-│   ├── data_mart.png
-│   ├── integration_model.drawio
-│   ├── integration_model.png
-│   ├── decisions.md
-│   └── rebuild_baseline.md
 │
 ├── scripts/
 │   ├── init_database.sql
@@ -174,21 +178,39 @@ data-warehouse-project/
 │       ├── ddl.sql
 │       └── quality_checks.sql
 │
+├── analysis/
+│   ├── 00_data_profile.sql
+│   └── 01_revenue_trends.sql
+│
+├── docs/
+│   ├── data_flow.drawio
+│   ├── data_flow.png
+│   ├── data_mart.drawio
+│   ├── data_mart.png
+│   ├── integration_model.drawio
+│   ├── integration_model.png
+│   ├── decisions.md
+│   └── rebuild_baseline.md
+│
+├── CLAUDE.md
+├── README.md
 └── .gitignore
 ```
 
-## Decisiones técnicas
+## Technical decisions
 
-Las principales decisiones tomadas durante el desarrollo y sus justificaciones se encuentran documentadas en [`docs/decisions.md`](docs/decisions.md).
+The main decisions made during development and their justifications are documented in [`docs/decisions.md`](docs/decisions.md):
 
-El documento aborda, entre otros aspectos:
+1. Implementing the Gold layer with views
+2. Surrogate keys in the dimensions
+3. CRM as the primary source for customer information
+4. Design and responsibilities of the Bronze, Silver and Gold layers
+5. Transformations and quality checks in Silver and Gold
+6. Source CSV line terminators and completeness of Bronze ingestion
+7. Analytical conventions established by the data profiling
 
-* implementación de Gold mediante views
-* uso de surrogate keys
-* integración de información CRM y ERP
-* responsabilidades de las capas Bronze, Silver y Gold
-* transformaciones y controles de calidad
+## References
 
-## Referencias
+The data used in this project and the reference conceptual structure come from **Data With Baraa**, as part of his educational Data Warehouse project.
 
-Los datos utilizados en este proyecto y la estructura conceptual de referencia fueron obtenidos de **Data With Baraa** como parte de su proyecto educativo de Data Warehouse.
+The additions in this repository are the reproducible rebuild, the ingestion fix documented in decision 6, the documented design decisions and the analytical layer.

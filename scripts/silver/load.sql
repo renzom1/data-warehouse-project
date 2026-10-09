@@ -1,33 +1,33 @@
 /*
 ===============================================================================
-CARGA DE LA CAPA SILVER
+SILVER LAYER LOAD
 ===============================================================================
-Propósito:
-    Transformar los datos almacenados en la capa Bronze y cargarlos en las
-    tablas correspondientes de la capa Silver.
+Purpose:
+    Transform the data stored in the Bronze layer and load it into the
+    corresponding Silver layer tables.
 
-    La capa Silver es responsable de aplicar reglas de limpieza,
-    estandarización, validación y transformación necesarias para obtener
-    datos consistentes y preparados para su utilización en la capa Gold.
+    The Silver layer is responsible for applying the cleaning,
+    standardization, validation and transformation rules needed to obtain
+    consistent data ready to be used in the Gold layer.
 
-Patrón de carga:
-    Se utiliza una estrategia de FULL REFRESH:
+Load pattern:
+    A FULL REFRESH strategy is used:
 
-        1. TRUNCATE de la tabla Silver.
-        2. Transformación de los datos provenientes de Bronze.
-        3. INSERT de los datos transformados.
+        1. TRUNCATE the Silver table.
+        2. Transform the data coming from Bronze.
+        3. INSERT the transformed data.
 
-    Esto significa que cada ejecución reconstruye completamente la capa
-    Silver a partir del contenido actual de Bronze.
+    This means each run completely rebuilds the Silver layer from the current
+    contents of Bronze.
 
-Control de ejecución:
-    - Se registra el tiempo de carga de cada tabla.
-    - Se registra el tiempo total del proceso.
-    - TRY/CATCH permite capturar errores durante la ejecución.
+Execution control:
+    - The load time of each table is recorded.
+    - The total time of the process is recorded.
+    - TRY/CATCH captures errors during execution.
 
-Nota:
-    El procedimiento utiliza los datos de Bronze como fuente y no modifica
-    directamente las tablas de esa capa.
+Note:
+    The procedure uses the Bronze data as its source and does not modify the
+    tables of that layer directly.
 ===============================================================================
 */
 
@@ -42,13 +42,13 @@ GO
 
 /*
 ===============================================================================
-CREACIÓN / ACTUALIZACIÓN DEL PROCEDIMIENTO
+PROCEDURE CREATION / UPDATE
 ===============================================================================
 
-CREATE OR ALTER permite ejecutar este script varias veces durante el
-desarrollo sin necesidad de eliminar manualmente el procedimiento existente.
+CREATE OR ALTER allows this script to be run several times during development
+without having to drop the existing procedure manually.
 
-El procedimiento se ejecuta posteriormente mediante:
+The procedure is then executed with:
 
     EXEC silver.load_silver;
 
@@ -60,16 +60,16 @@ BEGIN
 
     /*
     ---------------------------------------------------------------------------
-    VARIABLES DE CONTROL DE TIEMPO
+    TIME CONTROL VARIABLES
     ---------------------------------------------------------------------------
 
-    Como en la capa Bronze tenemos:
+    As in the Bronze layer we have:
 
-    @start_time y @end_time:
-        Permiten medir la duración de la carga de cada tabla.
+    @start_time and @end_time:
+        Measure the load duration of each table.
 
-    @batch_start_time y @batch_end_time:
-        Permiten medir la duración total de la carga de Silver.
+    @batch_start_time and @batch_end_time:
+        Measure the total duration of the Silver load.
     ---------------------------------------------------------------------------
     */
 
@@ -82,12 +82,11 @@ BEGIN
 
     /*
     ---------------------------------------------------------------------------
-    MANEJO DE ERRORES
+    ERROR HANDLING
     ---------------------------------------------------------------------------
 
-    TRY/CATCH permite capturar errores producidos durante la carga y mostrar
-    información básica sobre el problema sin detener el procedimiento de
-    forma silenciosa.
+    TRY/CATCH captures errors produced during the load and shows basic
+    information about the problem, instead of stopping the procedure silently.
     ---------------------------------------------------------------------------
     */
 
@@ -105,10 +104,10 @@ BEGIN
         CRM
         =========================================================================
 
-        Las tablas provenientes del CRM contienen información de clientes,
-        productos y ventas.
+        The tables coming from the CRM hold customer, product and sales
+        information.
 
-        Cada tabla se transforma antes de insertarse en Silver.
+        Each table is transformed before being inserted into Silver.
         =========================================================================
         */
 
@@ -122,17 +121,17 @@ BEGIN
         CRM CUSTOMERS
         -------------------------------------------------------------------------
 
-        Transformaciones principales:
-            - Eliminación de espacios innecesarios en nombres y atributos.
-            - Normalización de estado civil.
-            - Normalización de género.
-            - Eliminación de registros sin identificador de cliente.
-            - Eliminación de duplicados lógicos conservando el registro
-              más reciente para cada cliente.
+        Main transformations:
+            - Removal of unnecessary spaces in names and attributes.
+            - Marital status normalization.
+            - Gender normalization.
+            - Removal of records with no customer identifier.
+            - Removal of logical duplicates, keeping the most recent record
+              for each customer.
 
-        La tabla Bronze puede contener varias versiones de un mismo cliente.
-        Se utiliza ROW_NUMBER() para identificar la versión más reciente
-        mediante la fecha de creación.
+        The Bronze table can contain several versions of the same customer.
+        ROW_NUMBER() is used to identify the most recent version through the
+        creation date.
         -------------------------------------------------------------------------
         */
 
@@ -141,10 +140,9 @@ BEGIN
         PRINT '>> Truncating Table: silver.crm_cust_info';
 
         /*
-        TRUNCATE elimina los registros existentes pero conserva la estructura
-        de la tabla.
+        TRUNCATE removes the existing records but keeps the table structure.
 
-        Se utiliza porque Silver se reconstruye completamente en cada ejecución.
+        It is used because Silver is completely rebuilt on every run.
         */
         TRUNCATE TABLE silver.crm_cust_info;
 
@@ -166,17 +164,17 @@ BEGIN
             cst_key,
 
             /*
-            TRIM elimina espacios al principio y al final de los nombres.
+            TRIM removes leading and trailing spaces from the names.
             */
             TRIM(cst_firstname) AS cst_firstname,
             TRIM(cst_lastname) AS cst_lastname,
 
             /*
-            Se normalizan los códigos de estado civil provenientes del CRM
-            a valores descriptivos.
+            The marital status codes coming from the CRM are normalized to
+            descriptive values.
 
-            Valores desconocidos se representan como 'N/A' para mantener
-            una representación consistente en Silver.
+            Unknown values are represented as 'N/A' to keep a consistent
+            representation in Silver.
             */
             CASE
                 WHEN UPPER(TRIM(cst_marital_status)) = 'S'
@@ -187,7 +185,7 @@ BEGIN
             END AS cst_marital_status,
 
             /*
-            Se normalizan los códigos de género a valores descriptivos.
+            The gender codes are normalized to descriptive values.
             */
             CASE
                 WHEN UPPER(TRIM(cst_gndr)) = 'F'
@@ -202,19 +200,19 @@ BEGIN
         FROM (
             /*
             ---------------------------------------------------------------------
-            IDENTIFICACIÓN DE REGISTROS DUPLICADOS / VERSIONES
+            IDENTIFYING DUPLICATE RECORDS / VERSIONS
             ---------------------------------------------------------------------
 
-            ROW_NUMBER() genera una numeración independiente para cada cliente.
+            ROW_NUMBER() generates an independent numbering for each customer.
 
             PARTITION BY cst_id:
-                Agrupa las filas correspondientes al mismo cliente.
+                Groups the rows belonging to the same customer.
 
             ORDER BY cst_create_date DESC:
-                Coloca primero el registro más reciente.
+                Puts the most recent record first.
 
-            Por lo tanto, flag_last = 1 representa la versión más reciente
-            disponible para cada cliente.
+            Therefore, flag_last = 1 represents the most recent version
+            available for each customer.
             ---------------------------------------------------------------------
             */
 
@@ -228,15 +226,15 @@ BEGIN
             FROM bronze.crm_cust_info
 
             /*
-            Los registros sin identificador no pueden asociarse de manera
-            confiable a un cliente.
+            Records with no identifier cannot be reliably associated with a
+            customer.
             */
             WHERE cst_id IS NOT NULL
 
         ) AS t
 
         /*
-        Conservamos únicamente la versión más reciente de cada cliente.
+        Only the most recent version of each customer is kept.
         */
         WHERE flag_last = 1;
 
@@ -255,16 +253,15 @@ BEGIN
         CRM PRODUCTS
         -------------------------------------------------------------------------
 
-        Transformaciones principales:
-            - Extracción del identificador de categoría desde prd_key.
-            - Limpieza de la clave del producto.
-            - Reemplazo de costos NULL.
-            - Normalización de la línea de producto.
-            - Conversión de fechas.
-            - Cálculo de la fecha de finalización de cada versión del producto.
+        Main transformations:
+            - Extraction of the category identifier from prd_key.
+            - Cleaning of the product key.
+            - Replacement of NULL costs.
+            - Product line normalization.
+            - Date conversion.
+            - Calculation of the end date of each product version.
 
-        La fecha de finalización se obtiene a partir de la siguiente fecha
-        de inicio del mismo producto.
+        The end date is derived from the next start date of the same product.
         -------------------------------------------------------------------------
         */
 
@@ -292,16 +289,15 @@ BEGIN
             prd_id,
 
             /*
-            El identificador de categoría se encuentra dentro de prd_key.
+            The category identifier is found inside prd_key.
 
-            Ejemplo conceptual:
+            Conceptual example:
                 CAT-001-XXX
                 ↓
                 CAT_001
 
-            Se reemplaza '-' por '_' para obtener una clave compatible
-            con la utilizada posteriormente para relacionar productos
-            con la información de categorías del ERP.
+            '-' is replaced by '_' to obtain a key compatible with the one
+            later used to link products with the ERP category information.
             */
             REPLACE(
                 SUBSTRING(prd_key, 1, 5),
@@ -310,8 +306,8 @@ BEGIN
             ) AS cat_id,
 
             /*
-            Se extrae la parte correspondiente al identificador del producto
-            a partir de prd_key.
+            The part corresponding to the product identifier is extracted
+            from prd_key.
             */
             SUBSTRING(
                 prd_key,
@@ -322,14 +318,13 @@ BEGIN
             prd_nm,
 
             /*
-            Los costos faltantes se reemplazan por 0 para evitar valores NULL
-            en esta columna.
+            Missing costs are replaced by 0 to avoid NULL values in this
+            column.
             */
             ISNULL(prd_cost, 0) AS prd_cost,
 
             /*
-            Se convierten los códigos de línea de producto en valores
-            descriptivos.
+            The product line codes are converted to descriptive values.
             */
             CASE UPPER(TRIM(prd_line))
                 WHEN 'M' THEN 'Mountain'
@@ -340,24 +335,24 @@ BEGIN
             END AS prd_line,
 
             /*
-            Se convierte la fecha proveniente de Bronze al tipo DATE utilizado
-            en Silver.
+            The date coming from Bronze is converted to the DATE type used in
+            Silver.
             */
             CAST(prd_start_dt AS DATE) AS prd_start_date,
 
             /*
-            LEAD permite obtener la fecha de inicio de la siguiente versión
-            del mismo producto.
+            LEAD returns the start date of the next version of the same
+            product.
 
-            Se resta un día para obtener la fecha de finalización de la
-            versión actual.
+            One day is subtracted to obtain the end date of the current
+            version.
 
-            Ejemplo:
+            Example:
 
-                Inicio versión 1: 2020-01-01
-                Inicio versión 2: 2021-01-01
+                Version 1 start: 2020-01-01
+                Version 2 start: 2021-01-01
 
-                Fin versión 1:    2020-12-31
+                Version 1 end:   2020-12-31
             */
             CAST(
                 LEAD(prd_start_dt) OVER (
@@ -383,14 +378,14 @@ BEGIN
         CRM SALES
         -------------------------------------------------------------------------
 
-        Transformaciones principales:
-            - Validación y conversión de fechas.
-            - Corrección de valores de ventas inconsistentes.
-            - Corrección / derivación de precios inválidos.
+        Main transformations:
+            - Date validation and conversion.
+            - Correction of inconsistent sales values.
+            - Correction / derivation of invalid prices.
 
-        Las fechas llegan desde Bronze como INT en formato YYYYMMDD.
-        Antes de convertirlas a DATE se valida que tengan ocho dígitos y
-        que no sean 0.
+        Dates arrive from Bronze as INT in YYYYMMDD format.
+        Before converting them to DATE, they are validated to have eight digits
+        and to not be 0.
         -------------------------------------------------------------------------
         */
 
@@ -421,10 +416,10 @@ BEGIN
             sls_cust_id,
 
             /*
-            Las fechas de Bronze se almacenan como enteros YYYYMMDD.
+            Bronze dates are stored as YYYYMMDD integers.
 
-            Valores 0 o con una longitud diferente de 8 no representan
-            una fecha válida y se convierten en NULL.
+            Values of 0 or with a length other than 8 do not represent a valid
+            date and are converted to NULL.
             */
             CASE
                 WHEN sls_order_dt = 0
@@ -448,17 +443,17 @@ BEGIN
             END AS sls_due_dt,
 
             /*
-            Se valida el importe de venta.
+            The sales amount is validated.
 
-            Si el valor original:
-                - es NULL,
-                - es menor o igual a 0, o
-                - no coincide con quantity * price,
+            If the original value:
+                - is NULL,
+                - is less than or equal to 0, or
+                - does not match quantity * price,
 
-            se recalcula utilizando cantidad y precio.
+            it is recalculated using quantity and price.
 
-            ABS(sls_price) evita que un precio negativo origine un importe
-            de venta negativo.
+            ABS(sls_price) prevents a negative price from producing a
+            negative sales amount.
             */
             CASE
                 WHEN sls_sales IS NULL
@@ -471,10 +466,10 @@ BEGIN
             sls_quantity,
 
             /*
-            Si el precio original es NULL o no es positivo, se intenta
-            derivarlo a partir del importe de venta y la cantidad.
+            If the original price is NULL or not positive, an attempt is made
+            to derive it from the sales amount and the quantity.
 
-            NULLIF evita una división por cero cuando sls_quantity = 0.
+            NULLIF avoids a division by zero when sls_quantity = 0.
             */
             CASE
                 WHEN sls_price IS NULL
@@ -500,8 +495,8 @@ BEGIN
         ERP
         =========================================================================
 
-        Las tablas ERP aportan información complementaria que posteriormente
-        será integrada con los datos del CRM en la capa Gold.
+        The ERP tables provide complementary information that is later
+        integrated with the CRM data in the Gold layer.
         =========================================================================
         */
 
@@ -515,10 +510,10 @@ BEGIN
         ERP CUSTOMER
         -------------------------------------------------------------------------
 
-        Transformaciones:
-            - Eliminación del prefijo 'NAS' de los identificadores.
-            - Validación de fechas de nacimiento.
-            - Normalización del género.
+        Transformations:
+            - Removal of the 'NAS' prefix from the identifiers.
+            - Birthdate validation.
+            - Gender normalization.
         -------------------------------------------------------------------------
         */
 
@@ -540,9 +535,9 @@ BEGIN
         SELECT
 
             /*
-            Algunos identificadores contienen el prefijo NAS.
-            Se elimina para que el identificador pueda utilizarse
-            posteriormente para relacionar esta fuente con CRM.
+            Some identifiers contain the NAS prefix.
+            It is removed so that the identifier can later be used to link
+            this source with the CRM.
             */
             CASE
                 WHEN cid LIKE 'NAS%'
@@ -551,8 +546,8 @@ BEGIN
             END AS cid,
 
             /*
-            Una fecha de nacimiento futura no es válida para este contexto,
-            por lo que se transforma en NULL.
+            A future birthdate is not valid in this context, so it is
+            converted to NULL.
             */
             CASE
                 WHEN bdate > GETDATE()
@@ -561,8 +556,8 @@ BEGIN
             END AS bdate,
 
             /*
-            Se normalizan las diferentes representaciones de género
-            encontradas en la fuente.
+            The different gender representations found in the source are
+            normalized.
             */
             CASE
                 WHEN UPPER(TRIM(gen)) IN ('F', 'FEMALE')
@@ -589,10 +584,10 @@ BEGIN
         ERP LOCATION
         -------------------------------------------------------------------------
 
-        Transformaciones:
-            - Eliminación de '-' en los identificadores.
-            - Normalización de países.
-            - Tratamiento de valores NULL o vacíos.
+        Transformations:
+            - Removal of '-' from the identifiers.
+            - Country normalization.
+            - Handling of NULL or empty values.
         -------------------------------------------------------------------------
         */
 
@@ -613,16 +608,16 @@ BEGIN
         SELECT
 
             /*
-            Se eliminan los guiones del identificador para homogeneizar
-            su formato con las demás fuentes.
+            Hyphens are removed from the identifier to make its format
+            consistent with the other sources.
             */
             REPLACE(cid, '-', '') AS cid,
 
             /*
-            Se convierten códigos de país a nombres descriptivos.
+            Country codes are converted to descriptive names.
 
-            Los valores vacíos o NULL se representan como 'N/A'.
-            Los demás valores se conservan después de eliminar espacios.
+            Empty or NULL values are represented as 'N/A'.
+            Other values are kept after removing spaces.
             */
             CASE
                 WHEN TRIM(cntry) = 'DE'
@@ -651,12 +646,12 @@ BEGIN
         -------------------------------------------------------------------------
         ERP PRODUCT CATEGORY
         -------------------------------------------------------------------------
-        
-        En esta tabla no se aplican transformaciones.
 
-        Se mantiene la información tal como fue cargada en Bronze porque,
-        en el contexto de este proyecto, no se identificaron transformaciones
-        necesarias antes de utilizar estos datos en Gold.
+        No transformations are applied to this table.
+
+        The information is kept as it was loaded in Bronze because, in the
+        context of this project, no transformations were identified as
+        necessary before using this data in Gold.
         -------------------------------------------------------------------------
         */
 
@@ -696,10 +691,10 @@ BEGIN
 
         /*
         =========================================================================
-        FINALIZACIÓN DE LA CARGA
+        END OF THE LOAD
         =========================================================================
 
-        Se calcula el tiempo total empleado en la ejecución del procedimiento.
+        The total time spent running the procedure is calculated.
         =========================================================================
         */
 
@@ -726,7 +721,7 @@ BEGIN
 
     /*
     =========================================================================
-    MANEJO DE ERRORES
+    ERROR HANDLING
     =========================================================================
     */
 
@@ -754,11 +749,11 @@ GO
 
 /*
 ===============================================================================
-EJECUCIÓN
+EXECUTION
 ===============================================================================
 
-Una vez creado o actualizado el procedimiento, se ejecuta la carga completa
-de la capa Silver mediante:
+Once the procedure has been created or updated, the full load of the Silver
+layer is run with:
 
     EXEC silver.load_silver;
 

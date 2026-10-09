@@ -1,27 +1,27 @@
 /*
 ============================================================
-DDL: Creación de tablas de la capa Bronze
+DDL: Bronze layer table creation
 ============================================================
 
-Propósito:
-La capa Bronze recibe los datos provenientes de las fuentes
-CRM y ERP manteniendo, en la medida de lo posible, su
-estructura y formato originales.
+Purpose:
+The Bronze layer receives the data coming from the CRM and
+ERP sources, keeping their original structure and format as
+far as practical.
 
-En esta etapa no se aplican transformaciones ni reglas de
-negocio. La limpieza, estandarización y validación de los
-datos se realizan posteriormente en la capa Silver.
+No transformations or business rules are applied at this
+stage. Cleaning, standardization and validation of the data
+are done later, in the Silver layer.
 ============================================================
 
 ------------------------------------------------------------
-CRM: Información de clientes
+CRM: Customer information
 ------------------------------------------------------------
 
-Se elimina la tabla si ya existe antes de recrearla.
+The table is dropped if it already exists before being
+recreated.
 
-Esto permite hacer re-ejecutable el DDL durante el
-desarrollo sin tener que eliminar manualmente las tablas
-existentes.
+This makes the DDL re-runnable during development without
+having to drop the existing tables manually.
 */
 
 /*
@@ -50,7 +50,7 @@ GO
 
 /*
 ------------------------------------------------------------
-CRM: Información de productos
+CRM: Product information
 ------------------------------------------------------------
 */
 
@@ -72,16 +72,15 @@ GO
 
 /*
 ------------------------------------------------------------
-CRM: Detalle de ventas
+CRM: Sales details
 ------------------------------------------------------------
 
-Las fechas de las ventas se mantienen como INT porque en la
-fuente original están representadas como valores numéricos.
+Sales dates are kept as INT because the original source
+represents them as numeric values.
 
-No se transforman en esta etapa para conservar los datos lo
-más cerca posible de su formato de origen. La validación y
-conversión de estos valores se realiza posteriormente en
-Silver.
+They are not transformed at this stage, to keep the data as
+close as possible to its source format. Validation and
+conversion of these values is done later, in Silver.
 */
 
 IF OBJECT_ID('bronze.crm_sales_details', 'U') IS NOT NULL
@@ -104,7 +103,7 @@ GO
 
 /*
 ------------------------------------------------------------
-ERP: Información de ubicación de clientes
+ERP: Customer location information
 ------------------------------------------------------------
 */
 
@@ -121,7 +120,7 @@ GO
 
 /*
 ------------------------------------------------------------
-ERP: Información adicional de clientes
+ERP: Additional customer information
 ------------------------------------------------------------
 */
 
@@ -139,7 +138,7 @@ GO
 
 /*
 ------------------------------------------------------------
-ERP: Categorías y subcategorías de productos
+ERP: Product categories and subcategories
 ------------------------------------------------------------
 */
 

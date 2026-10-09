@@ -1,19 +1,18 @@
 /*
 ============================================================
-CARGA DE LA CAPA BRONZE
+BRONZE LAYER LOAD
 ============================================================
 
-Este procedimiento almacenado realiza la carga de las tablas
-de la capa Bronze a partir de los archivos CSV provenientes
-de las fuentes CRM y ERP.
+This stored procedure loads the Bronze layer tables from the
+CSV files coming from the CRM and ERP sources.
 
-El proceso utiliza un enfoque de carga completa (full load):
-las tablas se vacían mediante TRUNCATE TABLE y luego se
-recargan con los datos disponibles en los archivos fuente.
+The process uses a full load approach: the tables are emptied
+with TRUNCATE TABLE and then reloaded with the data available
+in the source files.
 
-Además, se registra el tiempo de ejecución de cada carga y
-del proceso completo, y se incorpora manejo básico de errores
-mediante TRY/CATCH.
+It also records the execution time of each load and of the
+whole process, and includes basic error handling through
+TRY/CATCH.
 
 CONFIGURATION (SQLCMD):
     This is a sqlcmd script. Two scripting variables are required and have
@@ -51,14 +50,14 @@ GO
 
 /*
 ------------------------------------------------------------
-CREACIÓN / ACTUALIZACIÓN DEL PROCEDIMIENTO
+PROCEDURE CREATION / UPDATE
 ------------------------------------------------------------
 
-CREATE OR ALTER permite crear el procedimiento si no existe
-o modificarlo si ya existe.
-Esto facilita el desarrollo y permite ejecutar nuevamente
-el script después de realizar cambios sin tener que eliminar
-manualmente el procedimiento.
+CREATE OR ALTER creates the procedure if it does not exist
+or modifies it if it already does.
+This makes development easier and allows the script to be
+run again after making changes without having to drop the
+procedure manually.
 */
 
 CREATE OR ALTER PROCEDURE bronze.load_bronze
@@ -68,13 +67,13 @@ BEGIN
 
     /*
     --------------------------------------------------------
-    Variables para medir los tiempos de ejecución.
+    Variables used to measure execution times.
 
-    @start_time y @end_time se utilizan para medir la
-    duración de cada carga individual.
+    @start_time and @end_time are used to measure the
+    duration of each individual load.
 
-    @batch_start_time y @batch_end_time permiten medir la
-    duración total del proceso de carga de Bronze.
+    @batch_start_time and @batch_end_time measure the total
+    duration of the Bronze load process.
     --------------------------------------------------------
     */
 
@@ -89,11 +88,11 @@ BEGIN
     --------------------------------------------------------
     TRY/CATCH
 
-    TRY contiene el proceso normal de carga.
+    TRY contains the normal load process.
 
-    Si ocurre un error durante alguna de las operaciones,
-    la ejecución pasa al bloque CATCH, donde se muestran
-    datos básicos sobre el error.
+    If an error occurs during any of the operations,
+    execution moves to the CATCH block, where basic
+    information about the error is displayed.
     --------------------------------------------------------
     */
 
@@ -104,7 +103,7 @@ BEGIN
 
         /*
         ----------------------------------------------------
-        Inicio del proceso de carga.
+        Start of the load process.
         ----------------------------------------------------
         */
 
@@ -115,7 +114,7 @@ BEGIN
 
         /*
         ====================================================
-        CARGA DE TABLAS CRM
+        CRM TABLE LOAD
         ====================================================
         */
 
@@ -126,14 +125,14 @@ BEGIN
 
         /*
         ----------------------------------------------------
-        CRM - Clientes
+        CRM - Customers
 
-        TRUNCATE TABLE elimina todos los registros existentes
-        pero conserva la estructura de la tabla.
+        TRUNCATE TABLE removes all existing records but keeps
+        the table structure.
 
-        Se utiliza un full load: antes de incorporar los datos
-        del archivo fuente se elimina la carga anterior, para
-        así evitar acumular registros entre ejecuciones.
+        A full load is used: before bringing in the data from
+        the source file, the previous load is removed, so that
+        records do not accumulate between runs.
         ----------------------------------------------------
         */
 
@@ -162,7 +161,7 @@ BEGIN
 
         /*
         ----------------------------------------------------
-        CRM - Productos
+        CRM - Products
         ----------------------------------------------------
         */
 
@@ -191,7 +190,7 @@ BEGIN
 
         /*
         ----------------------------------------------------
-        CRM - Detalle de ventas
+        CRM - Sales details
         ----------------------------------------------------
         */
 
@@ -218,7 +217,7 @@ BEGIN
 
         /*
         ====================================================
-        CARGA DE TABLAS ERP
+        ERP TABLE LOAD
         ====================================================
         */
 
@@ -229,7 +228,7 @@ BEGIN
 
         /*
         ----------------------------------------------------
-        ERP - Información adicional de clientes
+        ERP - Additional customer information
         ----------------------------------------------------
         */
 
@@ -258,7 +257,7 @@ BEGIN
 
         /*
         ----------------------------------------------------
-        ERP - Ubicación de clientes
+        ERP - Customer location
         ----------------------------------------------------
         */
 
@@ -287,7 +286,7 @@ BEGIN
 
         /*
         ----------------------------------------------------
-        ERP - Categorías y subcategorías de productos
+        ERP - Product categories and subcategories
         ----------------------------------------------------
         */
 
@@ -316,11 +315,11 @@ BEGIN
 
         /*
         ====================================================
-        FINALIZACIÓN DEL PROCESO
+        END OF THE PROCESS
         ====================================================
 
-        Se registra el tiempo total transcurrido desde el
-        comienzo hasta la finalización de la carga de Bronze.
+        The total time elapsed from the start to the end of
+        the Bronze load is recorded.
         ====================================================
         */
 
@@ -341,15 +340,15 @@ BEGIN
 
     /*
     ========================================================
-    MANEJO DE ERRORES
+    ERROR HANDLING
     ========================================================
 
-    Si alguna operación dentro del TRY produce un error,
-    SQL Server pasa a este bloque.
+    If any operation inside the TRY produces an error,
+    SQL Server moves to this block.
 
-    Se muestran el mensaje, número y estado del error para
-    facilitar la identificación del problema durante el
-    desarrollo y ejecución del proceso.
+    The error message, number and state are displayed to
+    make it easier to identify the problem during
+    development and execution of the process.
     ========================================================
     */
 
@@ -376,11 +375,11 @@ GO
 
 /*
 ------------------------------------------------------------
-EJECUCIÓN DEL PROCEDIMIENTO
+PROCEDURE EXECUTION
 ------------------------------------------------------------
 
-Una vez creado o actualizado el procedimiento, se ejecuta
-para realizar la carga completa de la capa Bronze.
+Once the procedure has been created or updated, it is
+executed to perform the full load of the Bronze layer.
 ------------------------------------------------------------
 */
 
