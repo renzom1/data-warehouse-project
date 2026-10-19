@@ -92,6 +92,8 @@ The analysis runs on top of the Gold layer and is organized as numbered, read-on
 
 Planned lines of analysis: product mix, revenue concentration, geographic distribution, customer demographics, and repeat purchasing with RFM segmentation.
 
+Results and their interpretation are recorded in [`analysis/findings.md`](analysis/findings.md), which separates direct observations, inferences, hypotheses, uncertainty and questions that need additional data.
+
 The analytical conventions that come out of the data profiling (analysis window, order dating, the meaning of `create_date`, repeat-purchase cohorts) are recorded in decision 7 of [`docs/decisions.md`](docs/decisions.md). None of them changes Silver or Gold.
 
 ## Reproducible rebuild
@@ -180,7 +182,8 @@ data-warehouse-project/
 │
 ├── analysis/
 │   ├── 00_data_profile.sql
-│   └── 01_revenue_trends.sql
+│   ├── 01_revenue_trends.sql
+│   └── findings.md
 │
 ├── docs/
 │   ├── data_flow.drawio
