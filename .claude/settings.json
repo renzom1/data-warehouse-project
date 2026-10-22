@@ -1,0 +1,43 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell|Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell",
+            "args": [
+              "-NoProfile",
+              "-ExecutionPolicy",
+              "Bypass",
+              "-Command",
+              "& (Join-Path $env:CLAUDE_PROJECT_DIR 'scripts\\hooks\\guard.ps1'); exit $LASTEXITCODE"
+            ],
+            "timeout": 20,
+            "statusMessage": "Checking database and source-data guards"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell",
+            "args": [
+              "-NoProfile",
+              "-ExecutionPolicy",
+              "Bypass",
+              "-Command",
+              "& (Join-Path $env:CLAUDE_PROJECT_DIR 'scripts\\hooks\\check_outputs.ps1'); exit $LASTEXITCODE"
+            ],
+            "timeout": 20,
+            "statusMessage": "Checking that analysis outputs are up to date"
+          }
+        ]
+      }
+    ]
+  }
+}

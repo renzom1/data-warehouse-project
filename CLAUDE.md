@@ -41,6 +41,13 @@ The full rebuild (8 scripts in order) is in the [README](README.md#execution-ord
 - **`DataWarehouse`**: the author's original database (pre-fix load). **Never write to it, reload it or drop it** without explicit authorization. [`validate.ps1`](scripts/validate.ps1) fails on it by design (4 known mismatches from [decision 6](docs/decisions.md#6-source-csv-line-terminators-and-completeness-of-bronze-ingestion)).
 - Analysis scripts are read-only: `SELECT` only, no objects created or modified.
 
+## Guardrails (hooks)
+
+[`.claude/settings.json`](.claude/settings.json) runs two hooks. When one blocks, follow its message; do not work around it.
+
+- [`scripts/hooks/guard.ps1`](scripts/hooks/guard.ps1) (before every shell command and file edit) blocks `sqlcmd`, `validate.ps1` and `run_analysis.ps1` against `DataWarehouse`, and any edit, move or deletion in `datasets/`. Both need the author.
+- [`scripts/hooks/check_outputs.ps1`](scripts/hooks/check_outputs.ps1) (before finishing a turn) blocks while an `analysis/0N_*.sql` has no saved output or is newer than it. Run [`run_analysis.ps1`](scripts/run_analysis.ps1) for it; if that is not possible, say so to the author.
+
 ## Analytical conventions (mandatory)
 
 Defined in [decision 7 of `docs/decisions.md`](docs/decisions.md#7-analytical-conventions-established-by-the-data-profiling). Apply them in every analysis without re-deriving them:
