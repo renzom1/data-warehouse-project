@@ -94,6 +94,12 @@ Planned lines of analysis: product mix, revenue concentration, geographic distri
 
 Results and their interpretation are recorded in [`analysis/findings.md`](analysis/findings.md), which separates direct observations, inferences, hypotheses, uncertainty and questions that need additional data.
 
+Each script is run with [`scripts/run_analysis.ps1`](scripts/run_analysis.ps1), which first validates the database against the baseline, then saves the output to [`analysis/output/`](analysis/output/) and fails if any control-total reconciliation prints `MISMATCH`. Every number in `findings.md` can be traced to those saved outputs.
+
+```powershell
+scripts\run_analysis.ps1 -Script analysis\01_revenue_trends.sql -DatabaseName DataWarehouse_Test
+```
+
 The analytical conventions that come out of the data profiling (analysis window, order dating, the meaning of `create_date`, repeat-purchase cohorts) are recorded in decision 7 of [`docs/decisions.md`](docs/decisions.md). None of them changes Silver or Gold.
 
 ## Reproducible rebuild
@@ -147,6 +153,12 @@ sqlcmd -S .\SQLEXPRESS -E -C -b -v 'DatabaseName="DataWarehouse_Test"' 'ProjectR
 
 The load procedures catch errors and print them instead of failing, so `sqlcmd` can return exit code 0 after a failed load. Check the printed output and the row counts. The expected counts and totals are in [`docs/rebuild_baseline.md`](docs/rebuild_baseline.md). The Silver birthdate check currently returns 15 birthdates before 1924; this is known and is documented there.
 
+[`scripts/validate.ps1`](scripts/validate.ps1) runs [`scripts/validate.sql`](scripts/validate.sql), which compares the row counts of every layer, the fact table totals, the Gold integrity checks and the known facts of the corrected build against that baseline. It prints `OK` / `MISMATCH` for each check and exits with a non-zero code if any check fails:
+
+```powershell
+scripts\validate.ps1 -DatabaseName DataWarehouse_Test
+```
+
 ## Technologies
 
 * SQL Server
@@ -166,6 +178,9 @@ data-warehouse-project/
 │
 ├── scripts/
 │   ├── init_database.sql
+│   ├── validate.sql
+│   ├── validate.ps1
+│   ├── run_analysis.ps1
 │   │
 │   ├── bronze/
 │   │   ├── ddl.sql
@@ -183,7 +198,8 @@ data-warehouse-project/
 ├── analysis/
 │   ├── 00_data_profile.sql
 │   ├── 01_revenue_trends.sql
-│   └── findings.md
+│   ├── findings.md
+│   └── output/
 │
 ├── docs/
 │   ├── data_flow.drawio

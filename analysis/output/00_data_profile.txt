@@ -1,0 +1,59 @@
+﻿Changed database context to 'DataWarehouse_Test'.
+--- 1. CONTROL TOTALS ---
+check_name|actual_value|expected_value|status
+----------|------------|--------------|------
+fact lines|60398|60398|OK
+distinct orders|27659|27659|OK
+customers (dim_customers)|18484|18484|OK
+customers with at least one order|18484|18484|OK
+products (dim_products)|295|295|OK
+revenue (SUM sales_amount)|29356250|29356250|OK
+units (SUM quantity)|60423|60423|OK
+--- 2. ORDER GRAIN ---
+item|n
+----|-
+orders with more than one customer|0
+orders with more than one distinct order_date|0
+orders where ALL lines have a NULL order_date|2
+orders MIXING NULL and dated lines|13
+lines with a NULL order_date|19
+duplicated (order_number, product_key) pairs|0
+maximum lines in one order|8
+--- 3. PERIOD COVERAGE ---
+period|lines|orders|units|revenue|first_date|last_date
+------|-----|------|-----|-------|----------|---------
+1. Context: 2010 tail|14|14|14|43419|2010-12-29|2010-12-31
+2. Main: 2011|2216|2216|2216|7075088|2011-01-01|2011-12-31
+2. Main: 2012|3397|3269|3397|5842231|2012-01-01|2012-12-31
+2. Main: 2013|52798|21287|52823|16349836|2013-01-01|2013-12-31
+5. Context: January 2014|1970|871|1970|45642|2014-01-01|2014-01-28
+9. Undated orders (no dated line)|3|2|3|34|NULL|NULL
+TOTAL|60398|27659|60423|29356250|2010-12-29|2014-01-28
+--- 4a. CUSTOMER DIMENSION ---
+item|n
+----|-
+customers|18484
+country = N/A|337
+country IS NULL|0
+gender = N/A|15
+marital_status = N/A|0
+birthdate IS NULL|16
+birthdate before 1924-01-01 (data-quality flag)|15
+--- 4b. PRODUCT DIMENSION AND REVENUE EXPOSURE ---
+item|n
+----|-
+products|295
+products with sales|130
+products with cost = 0|2
+products with category IS NULL|7
+products with product_line = N/A|17
+revenue on products with cost = 0|0
+revenue on products with category IS NULL|0
+revenue on products with product_line = N/A|0
+--- 5. CREATE_DATE AND DATE LAGS ---
+min_create_date|max_create_date|last_order_date
+---------------|---------------|---------------
+2025-10-06|2026-01-27|2014-01-28
+distinct_lag_combinations
+-------------------------
+1
