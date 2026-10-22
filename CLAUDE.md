@@ -71,6 +71,7 @@ A new convention that affects how data is interpreted goes into [decision 7](doc
 2. It ends with a control-totals section that prints `OK` / `MISMATCH` against the control totals, and every section's figures tie back to them.
 3. It was run with [`scripts\run_analysis.ps1`](scripts/run_analysis.ps1) and passed, and `analysis/output/0N_<topic>.txt` is saved in [`analysis/output/`](analysis/output/).
 4. [`analysis/findings.md`](analysis/findings.md) has a QN section with Observations / Inferences / Hypotheses / Uncertainty / Needs additional data. **Every number in it appears in the saved output** (or is derived from it with the arithmetic shown).
+   - Before presenting the section, run the [`findings-verifier`](.claude/agents/findings-verifier.md) subagent on it ("verify section QN of analysis/findings.md"). Fix every `error` and `warning` it reports, then run it again on the whole section (not only the edited lines) until it reports none. Give the author its last report.
 5. The [README analysis table](README.md#analytical-layer) and [Current status](#current-status) are updated, as is [decision 7](docs/decisions.md#7-analytical-conventions-established-by-the-data-profiling) if a new convention was introduced.
 
 Before writing a new analysis script, present a short plan (question, metrics, method, expected sections) and wait for the author's OK. That plan is the main point of review. After it is approved, implement without stopping for small details.

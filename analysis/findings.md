@@ -70,7 +70,7 @@ This is a mathematical breakdown of the revenue change, not a causal explanation
 
 ### Hypothesis (not established)
 
-* Changes in the product mix (what is sold, and in which combinations) may explain part of the decline in AOV and of the change in order structure. This has not been tested. Q2 will investigate it by comparing category and product-line shares by year, revenue per line, and each category's contribution to the year-over-year changes in lines and revenue. Even if product-mix changes are found, they will not necessarily explain the full decline in AOV.
+* Changes in the product mix (what is sold, and in which combinations) may explain part of the decline in AOV and of the change in order structure. This was not tested in Q1. Q2 investigates it by comparing category shares by year, revenue per line, and each category's contribution to the year-over-year changes in lines and revenue (see Q2).
 * Price changes, and changes in how the dataset itself was produced, are other possible explanations. They are not established causes and cannot be ruled out with this data.
 
 ### Uncertainty
@@ -93,7 +93,7 @@ This is a mathematical breakdown of the revenue change, not a causal explanation
 
 ## Q2. Does product mix help explain the decline in AOV?
 
-Source: [`02_product_mix.sql`](02_product_mix.sql), output in [`output/02_product_mix.txt`](output/02_product_mix.txt). Sections are cited by letter. Every section reconciles to the control totals (section J, all `OK`: 60,398 lines, 27,659 orders, revenue 29,356,250, units 60,423). Order classes are defined in [decision 7.8](../docs/decisions.md#78-order-classes-by-product-category). No price–mix decomposition was done; section I is a simple like-for-like comparison.
+Source: [`02_product_mix.sql`](02_product_mix.sql), output in [`output/02_product_mix.txt`](output/02_product_mix.txt). Sections are cited by letter. Section J (all `OK`: 60,398 lines, 27,659 orders, revenue 29,356,250, units 60,423) checks overall totals by period, category, subcategory, category × year lines (main window) and order class. It does not check the figures of the printed sections one by one. Section I covers only products sold in consecutive years, by design. Order classes are defined in [decision 7.8](../docs/decisions.md#78-order-classes-by-product-category). No price–mix decomposition was done. The splits shown are the additive category split of the year-over-year changes (section D) and a counterfactual that separates the shift across Bike subcategories from the change within them, 2012 to 2013 (Inferences, fourth item); neither separates price from mix. Section I is a simple like-for-like comparison.
 
 AOV = lines per order × revenue per line (section A1):
 
@@ -103,7 +103,7 @@ AOV = lines per order × revenue per line (section A1):
 | 2012 | 3,397 | 3,269 | 1.04 | 1,719.82 | 1,787.16 | 96.2 |
 | 2013 | 52,798 | 21,287 | 2.48 | 309.67 | 768.07 | 18.4 |
 
-Revenue per line fell by 46.1% (1,719.82 / 3,192.73 = 0.539) and by 82.0% (309.67 / 1,719.82 = 0.180).
+Revenue per line fell by 46.1% from 2011 to 2012 (1,719.82 / 3,192.73 = 0.539) and by 82.0% from 2012 to 2013 (309.67 / 1,719.82 = 0.180).
 
 ### Observations
 
@@ -119,10 +119,10 @@ Revenue per line fell by 46.1% (1,719.82 / 3,192.73 = 0.539) and by 82.0% (309.6
 2. **Contribution to the year-over-year changes (section D).**
    * 2011 to 2012: lines +1,181 (Bikes 89.2%, Accessories 9.0%, Clothing 1.9%). Revenue −1,232,857, of which Bikes −1,235,645 (100.2%).
    * 2012 to 2013: lines +49,401 (Accessories 69.4%, Clothing 17.5%, Bikes 13.0%). Revenue +10,507,605 (Bikes 90.6%, Accessories 6.3%, Clothing 3.1%).
-3. **Accessories and Clothing first appear in December 2012, the month lines first exceed orders (sections A2, G2, G3, G4).**
+3. **Accessories and Clothing first appear in December 2012, the month lines first exceed orders (sections A2, G2, G3, G4; A2 starts in January 2011, and Q1 Observation 3 covers the December 2010 tail).**
    * First month with sales: Bikes December 2010 (context tail), Accessories and Clothing December 2012 (106 and 22 lines; 19 and 11 products).
    * Non-Bike share of lines: 26.5% in December 2012, 70.1% in January 2013, 86.9% in February 2013. AOV in the same months: 1,759.03, 1,357.21, 542.73.
-   * Average unit price of Bikes in January to April 2013: 1,669.70, 1,550.08, 1,591.60, 1,604.02 (November 2012, when every line was a Bike: AOV 1,660.24).
+   * Average unit price of Bikes in January to April 2013: 1,669.70, 1,550.08, 1,591.60, 1,604.02 (November 2012, when every line was a Bike: average Bike unit price 1,660.24, equal to AOV).
    * Products first sold: 49 in December 2012 (19 Bikes, 19 Accessories, 11 Clothing) and 37 in January 2013 (25, 3, 9).
 4. **The January 2012 step happens inside Bikes (sections A2, G3, G4).** From December 2011 to January 2012 AOV goes from 3,015.29 to 1,965.73 and every line in both months is a Bike (non-Bike share 0.0%); the average Bike unit price equals AOV in those months. Bike products first sold: 12 in December 2011 and 6 in January 2012.
 5. **Order composition (section H).**
@@ -145,24 +145,24 @@ Revenue per line fell by 46.1% (1,719.82 / 3,192.73 = 0.539) and by 82.0% (309.6
    | 2012 to 2013 | Clothing | 11 (of 20) | 52.1 | 0 / 11 / 0 | 0.0% | 0.0% |
 
    No product in these groups was sold at a lower unit price than in the previous year. The price index values the later year's units at the earlier year's prices.
-8. **Assortment (section G1).** Bike products sold: 37 (2011), 50 (2012), 60 (2013). Of the 50 in 2012, 26 are new (29.3% of that year's Bike revenue) and 24 were also sold in 2011, so 37 − 24 = 13 products of 2011 were not sold in 2012. In 2013, 25 of 60 Bike products are new (18.5% of Bike revenue).
+8. **Assortment (sections G1, I).** Bike products sold: 37 (2011), 50 (2012), 60 (2013). Of the 50 in 2012, 26 are new (29.3% of that year's Bike revenue, section G1) and 24 were also sold in 2011 (section I), so 37 − 24 = 13 products of 2011 were not sold in 2012. In 2013, 25 of 60 Bike products are new (18.5% of Bike revenue).
 
 ### Inferences
 
-* **2012 to 2013: product mix is a large part of the change.** Accessories and Clothing, with revenue per line of 19.41 and 37.27, are 81.6% of 2013 lines (100 − 18.4), and 54.4% of 2013 orders contain no Bike (AOV 50.64). They appear in the same month in which lines first exceed orders and the second AOV step starts. The rise in lines per order and the fall in revenue per line coincide with the arrival of low-priced items. This describes the composition of the data; it does not show why they entered.
-* **The mix does not explain all of the decline.** Orders that contain a Bike have an AOV of 1,624.09 in 2013, 9.1% below the 2012 AOV of 1,787.16 (1,624.09 / 1,787.16 = 0.909). The classes are not identical to 2012's (Bikes + other include accessory lines), so this only indicates that a decline remains.
-* **2011 to 2012: not a category-mix effect.** Lines are 96.2% to 100% Bikes, and the AOV of Bikes-only orders fell to 1,787.33. It is also not a price cut on products sold in both years: none of the 24 was sold at a lower price, and their price index is +1.3%. What changed is which Bike products are sold: 13 of the 37 products of 2011 were not sold in 2012, 26 of the 50 sold in 2012 are new, and 18 Bike products were first sold in December 2011 and January 2012, around the step. This is consistent with a change in the mix of Bike products (the average Bike unit price fell 44.1% while continuing products did not get cheaper), but the data does not test it directly.
-* **2012 to 2013 within Bikes.** The like-for-like price index is +7.7% while the average Bike unit price fell 11.4%, so the fall is not a lower price of the same products. It comes from within the subcategories: revenue per line fell 22.7% in Road Bikes (1,647.31 to 1,273.37; 1,273.37 / 1,647.31 = 0.773) and 11.4% in Mountain Bikes (2,061.15 to 1,825.97; 0.886) (section E2). Touring Bikes (1,774.93 in 2013) are above the 2013 Bike average of 1,582.35 and so raise it. Which Road and Mountain products drive the fall was not analyzed.
+* **2012 to 2013: the AOV decline coincides with a large shift in product mix.** Accessories and Clothing, with revenue per line of 19.41 and 37.27, are 81.6% of 2013 lines ((34,406 + 8,686) / 52,798), and 54.4% of 2013 orders contain no Bike (AOV 50.64). They appear in December 2012, the month lines first exceed orders, immediately before the second AOV step (1,759.03 in December 2012 to 1,357.21 in January 2013, section A2). The rise in lines per order and the fall in revenue per line coincide with the arrival of low-priced items. No decomposition was done, so the share of the decline due to the mix is not measured. This describes the composition of the data; it does not show why they entered.
+* **The category mix does not explain all of the decline.** Orders that contain a Bike have an AOV of 1,624.09 in 2013, 9.1% below the 2012 AOV of 1,787.16 (1,624.09 / 1,787.16 = 0.909). Bikes + other is 1.9% of 2012 orders and 39.9% of 2013 orders (section H), so the two years' Bike orders are not like for like, and this only indicates that a decline remains. What remains may itself include product mix within Bikes (fourth item).
+* **2011 to 2012: not a category-mix effect.** Lines are 96.2% to 100% Bikes, and the AOV of Bikes-only orders fell to 1,787.33. It is also not a price cut on products sold in both years: none of the 24 was sold at a lower price, and their price index is +1.3%. The average Bike unit price fell 44.1% while continuing products did not get cheaper, so the fall comes from the product mix within Bikes. The output does not split that mix effect into its two possible parts: products entering and leaving (13 of the 37 products of 2011 were not sold in 2012; 26 of the 50 sold in 2012 are new, with 29.3% of that year's Bike revenue (of the 26, 6 were first sold in January 2012, 1 in February and 19 in December 2012, section G4); 18 Bike products were first sold in December 2011 and January 2012, around the step), and volume moving toward cheaper continuing products, which the price index holds fixed because it uses the later year's units as weights.
+* **2012 to 2013 within Bikes.** The like-for-like price index is +7.7% while the average Bike unit price fell 11.4%, so the fall is not a lower price of the same products. It comes from within the subcategories, not from the shift between them: at 2012 subcategory revenue per line and 2013 line counts, the Bike average would be 1,794.92 ((4,080 × 1,647.31 + 3,472 × 2,061.15 + 2,154 × 1,645.38) / 9,706, derived from E2), only 8.61 above the 2012 average of 1,786.31, so the shift between subcategories is small. Volume moved mainly from Road Bikes to Touring Bikes (Road 66.0% to 42.0% of Bike lines, 2,158 / 3,269 and 4,080 / 9,706; Touring 0.4% to 22.2%, 13 / 3,269 and 2,154 / 9,706), which had about the same 2012 revenue per line (1,647.31 against 1,645.38, the latter on 13 lines); Mountain Bikes rose from 33.6% to 35.8% (1,098 / 3,269; 3,472 / 9,706). Within the subcategories, revenue per line fell 22.7% in Road Bikes (1,647.31 to 1,273.37; 1,273.37 / 1,647.31 = 0.773) and 11.4% in Mountain Bikes (2,061.15 to 1,825.97; 0.886) (section E2). Touring Bikes (1,774.93 in 2013) are above the 2013 Bike average of 1,582.35 and so raise it. Which Road and Mountain products drive the fall was not analyzed.
 
 ### Hypotheses (not established)
 
-* In 2012, lower-priced Bike models replaced higher-priced ones. Not tested: this analysis does not compare the price level of the 13 products that left with the 26 that entered.
-* The simultaneous appearance of 49 products and two new categories in December 2012 reflects how the dataset was produced (or a business launch), not a gradual change. Cannot be tested with this data.
+* How much of the 2012 fall within Bikes comes from new models replacing dearer ones and how much from volume shifting among continuing models. Not tested: this analysis does not compare the price level of the 13 products that left with the 26 that entered, nor the volume shares of the 24 continuing products between the two years.
+* The simultaneous appearance of 49 products and two new categories in December 2012 may reflect how the dataset was produced, or a business launch, rather than a gradual change. Cannot be tested with this data.
 * Discounting or a list-price change may sit behind realized prices. Cannot be separated here.
 
 ### Uncertainty
 
-* How much of the AOV decline each factor accounts for. No decomposition was done, so mix, price and order structure are described, not apportioned.
+* How much of the AOV decline each factor accounts for. No decomposition was done, so mix, price and order structure are described, not apportioned. The additive category split of section D apportions the changes by category, not by factor, and the counterfactual in Inferences (fourth item) separates the shift across Bike subcategories from the change within them, 2012 to 2013.
 * Product attributes are the current product version; a product's category could differ historically.
 * Section I covers only products sold in two consecutive years, uses realized prices, and says nothing about entering or exiting products.
 * 2011 and 2012 have few lines (2,216 and 3,397) against 52,798 in 2013; their shares and medians are less stable. 2013 itself changes within the year (Bike share of lines 29.9% in January 2013 and 14.9% in March, section A2).

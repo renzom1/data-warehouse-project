@@ -342,7 +342,7 @@ These decisions come from profiling `gold` before the analysis phase (`analysis/
 
 ### 7.8 Order classes by product category
 
-**Observed.** `gold.dim_products` has three categories (Bikes, Accessories, Clothing). In 2011 every sold line is a Bike; Accessories and Clothing first appear in 2012 and make up most of the 2013 lines (exploratory query on `DataWarehouse_Test`; the figures are reproduced in `analysis/output/02_product_mix.txt`). An order's AOV therefore depends on which categories it contains.
+**Observed.** `gold.dim_products` has three categories with sales (Bikes, Accessories, Clothing); Components (127 products) and 7 unclassified products have no sales. In 2011 every sold line is a Bike; Accessories and Clothing first appear in 2012 and make up most of the 2013 lines (exploratory query on `DataWarehouse_Test`; the figures are reproduced in `analysis/output/02_product_mix.txt`). An order's AOV therefore depends on which categories it contains.
 
 **Decision.** For order-composition analysis each order (distinct `order_number`) is assigned one class from the categories of all its lines: `Bikes only` (every line is a Bike), `Bikes + other` (at least one Bike and at least one non-Bike line), `No bikes` (no Bike line). The category is the current product version's (`gold.dim_products`). Classes are not additive with "orders containing a category", which counts an order once per category it contains. Orders are assigned to years by their order-level date (7.2).
 
