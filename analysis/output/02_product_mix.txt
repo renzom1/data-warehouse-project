@@ -1,0 +1,255 @@
+﻿Changed database context to 'DataWarehouse_Test'.
+--- A1. AOV FACTORIZATION BY YEAR ---
+year|lines|orders|lines_per_order|revenue_per_line|aov|bikes_pct_of_lines
+----|-----|------|---------------|----------------|---|------------------
+2011|2216|2216|1.00|3192.73|3192.73|100.0
+2012|3397|3269|1.04|1719.82|1787.16|96.2
+2013|52798|21287|2.48|309.67|768.07|18.4
+--- A2. AOV FACTORIZATION BY MONTH ---
+month_start|lines|orders|lines_per_order|revenue_per_line|aov|bikes_pct_of_lines
+-----------|-----|------|---------------|----------------|---|------------------
+2011-01-01|144|144|1.00|3262.47|3262.47|100.0
+2011-02-01|144|144|1.00|3238.24|3238.24|100.0
+2011-03-01|150|150|1.00|3234.43|3234.43|100.0
+2011-04-01|157|157|1.00|3197.72|3197.72|100.0
+2011-05-01|174|174|1.00|3227.86|3227.86|100.0
+2011-06-01|230|230|1.00|3207.80|3207.80|100.0
+2011-07-01|188|188|1.00|3173.99|3173.99|100.0
+2011-08-01|193|193|1.00|3184.02|3184.02|100.0
+2011-09-01|185|185|1.00|3259.71|3259.71|100.0
+2011-10-01|221|221|1.00|3204.36|3204.36|100.0
+2011-11-01|208|208|1.00|3175.51|3175.51|100.0
+2011-12-01|222|222|1.00|3015.29|3015.29|100.0
+2012-01-01|252|252|1.00|1965.73|1965.73|100.0
+2012-02-01|260|260|1.00|1949.97|1949.97|100.0
+2012-03-01|212|212|1.00|1761.69|1761.69|100.0
+2012-04-01|219|219|1.00|1827.96|1827.96|100.0
+2012-05-01|207|207|1.00|1733.65|1733.65|100.0
+2012-06-01|318|318|1.00|1745.73|1745.73|100.0
+2012-07-01|246|246|1.00|1807.04|1807.04|100.0
+2012-08-01|294|294|1.00|1781.93|1781.93|100.0
+2012-09-01|269|269|1.00|1807.25|1807.25|100.0
+2012-10-01|313|313|1.00|1709.66|1709.66|100.0
+2012-11-01|324|324|1.00|1660.24|1660.24|100.0
+2012-12-01|483|355|1.36|1292.87|1759.03|73.5
+2013-01-01|1662|632|2.63|516.10|1357.21|29.9
+2013-02-01|3453|1421|2.43|223.35|542.73|13.1
+2013-03-01|4087|1690|2.42|256.85|621.14|14.9
+2013-04-01|3979|1612|2.47|262.84|648.80|15.2
+2013-05-01|4399|1792|2.45|291.99|716.77|17.0
+2013-06-01|5025|2007|2.50|326.95|818.61|20.0
+2013-07-01|4671|1875|2.49|293.64|731.52|17.1
+2013-08-01|4862|1964|2.48|318.97|789.63|18.4
+2013-09-01|4616|1884|2.45|313.55|768.22|18.8
+2013-10-01|5300|2131|2.49|315.72|785.22|19.2
+2013-11-01|5224|2087|2.50|340.87|853.23|20.6
+2013-12-01|5520|2192|2.52|339.52|854.99|20.6
+--- B. CATEGORY SUMMARY ---
+category|lines|orders_containing|units|revenue|pct_of_lines|pct_of_revenue|revenue_per_line|avg_unit_price|products_sold|products_in_dim
+--------|-----|-----------------|-----|-------|------------|--------------|----------------|--------------|-------------|---------------
+Bikes|15205|15205|15205|28316272|25.2|96.5|1862.30|1862.30|88|97
+Accessories|36092|18208|36112|700262|59.8|2.4|19.40|19.39|22|29
+Clothing|9101|7461|9106|339716|15.1|1.2|37.33|37.31|20|35
+Components|0|0|0|0|.0|.0|NULL|NULL|0|127
+(unclassified)|0|0|0|0|.0|.0|NULL|NULL|0|7
+TOTAL|60398|27659|60423|29356250|100.0|100.0|486.05|485.85|130|295
+--- C. CATEGORY MIX BY YEAR ---
+category|year|lines|units|revenue|share_lines_pct|share_units_pct|share_revenue_pct|share_lines_chg_pp|share_revenue_chg_pp|revenue_per_line|avg_unit_price
+--------|----|-----|-----|-------|---------------|---------------|-----------------|------------------|--------------------|----------------|--------------
+Accessories|2011|0|0|0|.0|.0|.0|NULL|NULL|NULL|NULL
+Accessories|2012|106|106|2146|3.1|3.1|.0|3.1|.0|20.25|20.25
+Accessories|2013|34406|34426|667750|65.2|65.2|4.1|62.0|4.0|19.41|19.40
+Bikes|2011|2216|2216|7075088|100.0|100.0|100.0|NULL|NULL|3192.73|3192.73
+Bikes|2012|3269|3269|5839443|96.2|96.2|100.0|-3.8|.0|1786.31|1786.31
+Bikes|2013|9706|9706|15358322|18.4|18.4|93.9|-77.8|-6.0|1582.35|1582.35
+Clothing|2011|0|0|0|.0|.0|.0|NULL|NULL|NULL|NULL
+Clothing|2012|22|22|642|.6|.6|.0|.6|.0|29.18|29.18
+Clothing|2013|8686|8691|323764|16.5|16.5|2.0|15.8|2.0|37.27|37.25
+--- D. CONTRIBUTION TO CHANGE ---
+transition|category|change_lines|contrib_lines_pct|change_revenue|contrib_revenue_pct
+----------|--------|------------|-----------------|--------------|-------------------
+2011 to 2012|Accessories|106|9.0|2146|-.2
+2011 to 2012|Bikes|1053|89.2|-1235645|100.2
+2011 to 2012|Clothing|22|1.9|642|-.1
+2011 to 2012|TOTAL|1181|100.0|-1232857|100.0
+2012 to 2013|Accessories|34300|69.4|665604|6.3
+2012 to 2013|Bikes|6437|13.0|9518879|90.6
+2012 to 2013|Clothing|8664|17.5|323122|3.1
+2012 to 2013|TOTAL|49401|100.0|10507605|100.0
+--- E1. SUBCATEGORY RANKING (WHOLE DATASET) ---
+revenue_rank|category|subcategory|lines|units|revenue|pct_of_revenue|pct_of_lines|revenue_per_line|avg_unit_price|products_sold
+------------|--------|-----------|-----|-----|-------|--------------|------------|----------------|--------------|-------------
+1|Bikes|Road Bikes|8068|8068|14519438|49.5|13.4|1799.63|1799.63|38
+2|Bikes|Mountain Bikes|4970|4970|9952254|33.9|8.2|2002.47|2002.47|28
+3|Bikes|Touring Bikes|2167|2167|3844580|13.1|3.6|1774.15|1774.15|22
+4|Accessories|Tires and Tubes|17332|17336|244634|.8|28.7|14.11|14.11|11
+5|Accessories|Helmets|6440|6441|225435|.8|10.7|35.01|35.00|3
+6|Clothing|Jerseys|3332|3334|173084|.6|5.5|51.95|51.91|8
+7|Clothing|Shorts|1019|1019|71330|.2|1.7|70.00|70.00|3
+8|Accessories|Bottles and Cages|7981|7995|56993|.2|13.2|7.14|7.13|3
+9|Accessories|Fenders|2121|2121|46662|.2|3.5|22.00|22.00|1
+10|Accessories|Hydration Packs|733|733|40315|.1|1.2|55.00|55.00|1
+11|Accessories|Bike Stands|249|249|39591|.1|.4|159.00|159.00|1
+12|Accessories|Bike Racks|328|328|39360|.1|.5|120.00|120.00|1
+13|Clothing|Vests|562|565|36160|.1|.9|64.34|64.00|3
+14|Clothing|Gloves|1430|1430|34320|.1|2.4|24.00|24.00|3
+15|Clothing|Caps|2190|2190|19710|.1|3.6|9.00|9.00|1
+16|Accessories|Cleaners|908|909|7272|.0|1.5|8.01|8.00|1
+17|Clothing|Socks|568|568|5112|.0|.9|9.00|9.00|2
+--- E2. SUBCATEGORY MIX BY YEAR (MAIN WINDOW) ---
+category|subcategory|year|lines|revenue|share_lines_pct|share_revenue_pct|share_lines_chg_pp|revenue_per_line
+--------|-----------|----|-----|-------|---------------|-----------------|------------------|----------------
+Accessories|Bike Racks|2011|0|0|.0|.0|NULL|NULL
+Accessories|Bike Racks|2012|0|0|.0|.0|.0|NULL
+Accessories|Bike Racks|2013|308|36960|.6|.2|.6|120.00
+Accessories|Bike Stands|2011|0|0|.0|.0|NULL|NULL
+Accessories|Bike Stands|2012|1|159|.0|.0|.0|159.00
+Accessories|Bike Stands|2013|237|37683|.4|.2|.4|159.00
+Accessories|Bottles and Cages|2011|0|0|.0|.0|NULL|NULL
+Accessories|Bottles and Cages|2012|38|281|1.1|.0|1.1|7.39
+Accessories|Bottles and Cages|2013|7718|55201|14.6|.3|13.5|7.15
+Accessories|Cleaners|2011|0|0|.0|.0|NULL|NULL
+Accessories|Cleaners|2012|0|0|.0|.0|.0|NULL
+Accessories|Cleaners|2013|869|6960|1.6|.0|1.6|8.01
+Accessories|Fenders|2011|0|0|.0|.0|NULL|NULL
+Accessories|Fenders|2012|5|110|.1|.0|.1|22.00
+Accessories|Fenders|2013|2022|44484|3.8|.3|3.7|22.00
+Accessories|Helmets|2011|0|0|.0|.0|NULL|NULL
+Accessories|Helmets|2012|26|910|.8|.0|.8|35.00
+Accessories|Helmets|2013|6174|216125|11.7|1.3|10.9|35.01
+Accessories|Hydration Packs|2011|0|0|.0|.0|NULL|NULL
+Accessories|Hydration Packs|2012|2|110|.1|.0|.1|55.00
+Accessories|Hydration Packs|2013|708|38940|1.3|.2|1.3|55.00
+Accessories|Tires and Tubes|2011|0|0|.0|.0|NULL|NULL
+Accessories|Tires and Tubes|2012|34|576|1.0|.0|1.0|16.94
+Accessories|Tires and Tubes|2013|16370|231397|31.0|1.4|30.0|14.14
+Bikes|Mountain Bikes|2011|395|1332368|17.8|18.8|NULL|3373.08
+Bikes|Mountain Bikes|2012|1098|2263148|32.3|38.7|14.5|2061.15
+Bikes|Mountain Bikes|2013|3472|6339763|6.6|38.8|-25.7|1825.97
+Bikes|Road Bikes|2011|1821|5742720|82.2|81.2|NULL|3153.61
+Bikes|Road Bikes|2012|2158|3554905|63.5|60.8|-18.6|1647.31
+Bikes|Road Bikes|2013|4080|5195369|7.7|31.8|-55.8|1273.37
+Bikes|Touring Bikes|2011|0|0|.0|.0|NULL|NULL
+Bikes|Touring Bikes|2012|13|21390|.4|.4|.4|1645.38
+Bikes|Touring Bikes|2013|2154|3823190|4.1|23.4|3.7|1774.93
+Clothing|Caps|2011|0|0|.0|.0|NULL|NULL
+Clothing|Caps|2012|8|72|.2|.0|.2|9.00
+Clothing|Caps|2013|2099|18891|4.0|.1|3.7|9.00
+Clothing|Gloves|2011|0|0|.0|.0|NULL|NULL
+Clothing|Gloves|2012|3|72|.1|.0|.1|24.00
+Clothing|Gloves|2013|1363|32712|2.6|.2|2.5|24.00
+Clothing|Jerseys|2011|0|0|.0|.0|NULL|NULL
+Clothing|Jerseys|2012|8|416|.2|.0|.2|52.00
+Clothing|Jerseys|2013|3189|165706|6.0|1.0|5.8|51.96
+Clothing|Shorts|2011|0|0|.0|.0|NULL|NULL
+Clothing|Shorts|2012|0|0|.0|.0|.0|NULL
+Clothing|Shorts|2013|963|67410|1.8|.4|1.8|70.00
+Clothing|Socks|2011|0|0|.0|.0|NULL|NULL
+Clothing|Socks|2012|2|18|.1|.0|.1|9.00
+Clothing|Socks|2013|541|4869|1.0|.0|1.0|9.00
+Clothing|Vests|2011|0|0|.0|.0|NULL|NULL
+Clothing|Vests|2012|1|64|.0|.0|.0|64.00
+Clothing|Vests|2013|531|34176|1.0|.2|1.0|64.36
+--- F. PRODUCT-LINE MIX BY YEAR ---
+product_line|year|lines|units|revenue|share_lines_pct|share_revenue_pct|share_lines_chg_pp|share_revenue_chg_pp|revenue_per_line|avg_unit_price
+------------|----|-----|-----|-------|---------------|-----------------|------------------|--------------------|----------------|--------------
+Mountain|2011|395|395|1332368|17.8|18.8|NULL|NULL|3373.08|3373.08
+Mountain|2012|1123|1123|2263712|33.1|38.7|15.2|19.9|2015.77|2015.77
+Mountain|2013|14797|14810|6623260|28.0|40.5|-5.0|1.8|447.61|447.22
+Other sales|2011|0|0|0|.0|.0|NULL|NULL|NULL|NULL
+Other sales|2012|70|70|1742|2.1|.0|2.1|.0|24.89|24.89
+Other sales|2013|22347|22359|576947|42.3|3.5|40.3|3.5|25.82|25.80
+Road|2011|1821|1821|5742720|82.2|81.2|NULL|NULL|3153.61|3153.61
+Road|2012|2187|2187|3555319|64.4|60.9|-17.8|-20.3|1625.66|1625.66
+Road|2013|11215|11215|5293822|21.2|32.4|-43.1|-28.5|472.03|472.03
+Touring|2011|0|0|0|.0|.0|NULL|NULL|NULL|NULL
+Touring|2012|17|17|21458|.5|.4|.5|.4|1262.24|1262.24
+Touring|2013|4439|4439|3855807|8.4|23.6|7.9|23.2|868.62|868.62
+--- G1. DISTINCT PRODUCTS SOLD BY YEAR AND CATEGORY ---
+year|category|products_sold|new_products|lines|pct_revenue_from_new_products
+----|--------|-------------|------------|-----|-----------------------------
+2011|Bikes|37|27|2216|13.9
+2011|ALL|37|27|2216|13.9
+2012|Accessories|19|19|106|100.0
+2012|Bikes|50|26|3269|29.3
+2012|Clothing|11|11|22|100.0
+2012|ALL|80|56|3397|29.3
+2013|Accessories|22|3|34406|9.6
+2013|Bikes|60|25|9706|18.5
+2013|Clothing|20|9|8686|47.9
+2013|ALL|102|37|52798|18.7
+--- G2. FIRST MONTH WITH SALES, BY CATEGORY ---
+category|first_month|lines_in_first_month|products_in_first_month
+--------|-----------|--------------------|-----------------------
+Bikes|2010-12-01|14|10
+Accessories|2012-12-01|106|19
+Clothing|2012-12-01|22|11
+--- G3. MONTHLY CATEGORY MIX AROUND THE AOV BREAKS ---
+month_start|lines|orders|lines_bikes|lines_accessories|lines_clothing|non_bike_pct_of_lines|aov|bikes_avg_unit_price
+-----------|-----|------|-----------|-----------------|--------------|---------------------|---|--------------------
+2011-10-01|221|221|221|0|0|.0|3204.36|3204.36
+2011-11-01|208|208|208|0|0|.0|3175.51|3175.51
+2011-12-01|222|222|222|0|0|.0|3015.29|3015.29
+2012-01-01|252|252|252|0|0|.0|1965.73|1965.73
+2012-02-01|260|260|260|0|0|.0|1949.97|1949.97
+2012-03-01|212|212|212|0|0|.0|1761.69|1761.69
+2012-10-01|313|313|313|0|0|.0|1709.66|1709.66
+2012-11-01|324|324|324|0|0|.0|1660.24|1660.24
+2012-12-01|483|355|355|106|22|26.5|1759.03|1751.17
+2013-01-01|1662|632|497|931|234|70.1|1357.21|1669.70
+2013-02-01|3453|1421|454|2415|584|86.9|542.73|1550.08
+2013-03-01|4087|1690|608|2771|708|85.1|621.14|1591.60
+2013-04-01|3979|1612|604|2705|670|84.8|648.80|1604.02
+--- G4. PRODUCTS FIRST SOLD, BY MONTH ---
+first_sale_month|products_first_sold|bikes|accessories|clothing
+----------------|-------------------|-----|-----------|--------
+2010-12-01|10|10|0|0
+2011-01-01|12|12|0|0
+2011-02-01|2|2|0|0
+2011-03-01|1|1|0|0
+2011-12-01|12|12|0|0
+2012-01-01|6|6|0|0
+2012-02-01|1|1|0|0
+2012-12-01|49|19|19|11
+2013-01-01|37|25|3|9
+--- H. ORDER COMPOSITION BY CLASS ---
+year|order_class|orders|pct_of_orders|lines|revenue|pct_of_revenue|aov|lines_per_order|revenue_per_line
+----|-----------|------|-------------|-----|-------|--------------|---|---------------|----------------
+2011|Bikes + other|0|.0|0|0|.0|NULL|NULL|NULL
+2011|Bikes only|2216|100.0|2216|7075088|100.0|3192.73|1.00|3192.73
+2011|No bikes|0|.0|0|0|.0|NULL|NULL|NULL
+2012|Bikes + other|62|1.9|190|110269|1.9|1778.53|3.06|580.36
+2012|Bikes only|3207|98.1|3207|5731962|98.1|1787.33|1.00|1787.33
+2012|No bikes|0|.0|0|0|.0|NULL|NULL|NULL
+2013|Bikes + other|8501|39.9|25756|13915719|85.1|1636.95|3.03|540.29
+2013|Bikes only|1205|5.7|1205|1847679|11.3|1533.34|1.00|1533.34
+2013|No bikes|11581|54.4|25837|586438|3.6|50.64|2.23|22.70
+--- I. LIKE-FOR-LIKE UNIT PRICE BY CATEGORY ---
+transition|category|products_in_both|products_sold_cur|pct_cat_revenue_cur|lower|same|higher|median_price_chg_pct|price_index_chg_pct
+----------|--------|----------------|-----------------|-------------------|-----|----|------|--------------------|-------------------
+2011 to 2012|Bikes|24|50|70.7|0|5|19|5.8|1.3
+2012 to 2013|Accessories|19|22|90.4|0|19|0|.0|.0
+2012 to 2013|Bikes|35|60|81.5|0|19|16|.0|7.7
+2012 to 2013|Clothing|11|20|52.1|0|11|0|.0|.0
+--- J. CONTROL TOTALS ---
+check_name|actual_value|expected_value|status
+----------|------------|--------------|------
+lines: fact joined to dimension|60398|60398|OK
+orders|27659|27659|OK
+revenue|29356250|29356250|OK
+units|60423|60423|OK
+lines: periods (main, context, undated)|60398|60398|OK
+orders: periods (main, context, undated)|27659|27659|OK
+revenue: periods (main, context, undated)|29356250|29356250|OK
+units: periods (main, context, undated)|60423|60423|OK
+lines: categories|60398|60398|OK
+revenue: categories|29356250|29356250|OK
+units: categories|60423|60423|OK
+categories outside Bikes / Accessories / Clothing (lines)|0|0|OK
+lines: subcategories|60398|60398|OK
+revenue: subcategories|29356250|29356250|OK
+lines: category x year (main) = main window|58411|58411|OK
+orders: order classes (all orders)|27659|27659|OK
+lines: order classes|60398|60398|OK
+revenue: order classes|29356250|29356250|OK
+orders: order classes (main) = main window|26772|26772|OK

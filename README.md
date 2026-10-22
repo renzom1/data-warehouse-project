@@ -89,8 +89,9 @@ The analysis runs on top of the Gold layer and is organized as numbered, read-on
 |---|---|
 | [`00_data_profile.sql`](analysis/00_data_profile.sql) | Control totals and the data-quality facts that every other analysis depends on. It runs no business analysis. |
 | [`01_revenue_trends.sql`](analysis/01_revenue_trends.sql) | Revenue, units and orders over time, seasonality, and whether growth comes from more orders or a higher order value. |
+| [`02_product_mix.sql`](analysis/02_product_mix.sql) | Product mix (category, subcategory, product line, order class) by year and around the AOV steps, and a like-for-like check of realized unit prices, to test whether mix changes help explain the decline in AOV. |
 
-Planned lines of analysis: product mix, revenue concentration, geographic distribution, customer demographics, and repeat purchasing with RFM segmentation.
+Planned lines of analysis: revenue concentration, geographic distribution, customer demographics, and repeat purchasing with RFM segmentation.
 
 Results and their interpretation are recorded in [`analysis/findings.md`](analysis/findings.md), which separates direct observations, inferences, hypotheses, uncertainty and questions that need additional data.
 
@@ -100,7 +101,7 @@ Each script is run with [`scripts/run_analysis.ps1`](scripts/run_analysis.ps1), 
 scripts\run_analysis.ps1 -Script analysis\01_revenue_trends.sql -DatabaseName DataWarehouse_Test
 ```
 
-The analytical conventions that come out of the data profiling (analysis window, order dating, the meaning of `create_date`, repeat-purchase cohorts) are recorded in decision 7 of [`docs/decisions.md`](docs/decisions.md). None of them changes Silver or Gold.
+The analytical conventions that come out of the data profiling (analysis window, order dating, the meaning of `create_date`, repeat-purchase cohorts, order classes by product category) are recorded in decision 7 of [`docs/decisions.md`](docs/decisions.md). None of them changes Silver or Gold.
 
 ## Reproducible rebuild
 
@@ -198,6 +199,7 @@ data-warehouse-project/
 ├── analysis/
 │   ├── 00_data_profile.sql
 │   ├── 01_revenue_trends.sql
+│   ├── 02_product_mix.sql
 │   ├── findings.md
 │   └── output/
 │

@@ -14,8 +14,8 @@ Update this section at the end of every task, so the next session starts from he
 - **Analysis:**
   - Q0 data profile: done ([`analysis/00_data_profile.sql`](analysis/00_data_profile.sql), conventions in [decision 7](docs/decisions.md#7-analytical-conventions-established-by-the-data-profiling)).
   - Q1 revenue trends: done ([`analysis/01_revenue_trends.sql`](analysis/01_revenue_trends.sql), [`analysis/findings.md`](analysis/findings.md#q1-how-have-revenue-units-and-orders-changed-over-time)).
-  - **Next: Q2 product mix.** It tests the Q1 hypothesis that product-mix changes explain part of the AOV decline (see ["Hypothesis" under Q1 in `findings.md`](analysis/findings.md#hypothesis-not-established)).
-- **Planned after Q2** (candidates, not commitments; confirm scope with the author): revenue concentration, geography, customer demographics, repeat purchasing / RFM.
+  - Q2 product mix: done ([`analysis/02_product_mix.sql`](analysis/02_product_mix.sql), [`analysis/findings.md`](analysis/findings.md#q2-does-product-mix-help-explain-the-decline-in-aov), order classes in [decision 7.8](docs/decisions.md#78-order-classes-by-product-category)). Product mix explains much of the 2012→2013 change (Accessories/Clothing from Dec 2012), not the 2011→2012 step, and not all of the decline. No price–mix decomposition was done; it would be a separately approved extension.
+- **Next:** none chosen. Candidates (not commitments; confirm scope with the author): revenue concentration, geography, customer demographics, repeat purchasing / RFM.
 
 ## Commands
 
@@ -89,6 +89,7 @@ Before writing a new analysis script, present a short plan (question, metrics, m
 - Surrogate keys (`customer_key`, `product_key`) come from `ROW_NUMBER()` in views and are not stable ([decision 1](docs/decisions.md#1-implementing-the-gold-layer-with-views), [decision 2](docs/decisions.md#2-surrogate-keys-in-the-dimensions)). Never hardcode them; use `customer_id` / `product_number` to refer to specific entities.
 - `gold.dim_products` holds current product versions only (`prd_end_dt IS NULL`): 295 of 397 Silver rows ([`scripts/gold/ddl.sql`](scripts/gold/ddl.sql)).
 - After a join, compare row counts before and after to catch fan-out.
+- **Reference a CTE built on the Gold views only once.** SQL Server does not materialize CTEs: every reference re-expands the view chain (including the `ROW_NUMBER()` in `gold.dim_*`), so a CTE used twice (e.g. a `LEFT JOIN` plus `WHERE x IN (SELECT ... FROM cte)`, or a self-join of a product × year CTE) doubles the cost, and Q2 sections took 20+ minutes this way. Aggregate once and derive the rest from that small result with window functions (`LAG`, `COUNT(...) OVER`, `GROUPING SETS`). Do not create temp tables or other objects (analysis is read-only).
 
 ## Where knowledge lives
 
