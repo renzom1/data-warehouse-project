@@ -292,6 +292,8 @@ These decisions come from profiling `gold` before the analysis phase (`analysis/
 
 **Justification** Mixing partial periods into year-over-year comparisons would create artificial changes, and January 2014 is not a representative month.
 
+**Exception.** January 2014 orders may be counted as follow-up orders in repeat-purchase analysis; see [7.9](#79-repeat-purchase-sequence-rules).
+
 ### 7.2 Order-level date for temporal analysis
 
 **Observed.** 19 fact lines have a `NULL` `order_date`. 13 orders contain both dated and `NULL`-dated lines, and 2 orders have no dated line at all. No order has more than one distinct non-`NULL` `order_date`.
@@ -347,6 +349,21 @@ These decisions come from profiling `gold` before the analysis phase (`analysis/
 **Decision.** For order-composition analysis each order (distinct `order_number`) is assigned one class from the categories of all its lines: `Bikes only` (every line is a Bike), `Bikes + other` (at least one Bike and at least one non-Bike line), `No bikes` (no Bike line). The category is the current product version's (`gold.dim_products`). Classes are not additive with "orders containing a category", which counts an order once per category it contains. Orders are assigned to years by their order-level date (7.2).
 
 **Justification** The three classes are mutually exclusive and cover every order, so shares add to 100% and order counts tie to the control total. They separate "different kinds of orders" from "the same kind of order worth less" without any weighting scheme.
+
+### 7.9 Repeat-purchase sequence rules
+
+**Observed.** Orders run from 2010-12-29 to 2014-01-28 (7.1). Every order belongs to exactly one customer, and 2 orders have no date (7.2). A customer can have several orders on the same date, and nothing shows that `order_number` reflects their sequence within a day. January 2014 is an incomplete month with an unexplained AOV (Q1). The data starts on 2010-12-29, so a customer's first order in the data may not be the first order ever.
+
+**Decision.** Repeat-purchase analysis (Q3) applies these rules on top of 7.2, 7.6 and 7.8:
+
+1. **Customers** are identified by `customer_id`. A customer's **order sequence** is made of their dated orders, ordered by order date and then by `order_number`. Undated orders are outside the sequence, and customers with no dated order are reported apart. In the script, customers are grouped by `gold.fact_sales.customer_key`, which is never reported. Inside one query it is the `ROW_NUMBER() OVER (ORDER BY cst_id)` of `gold.dim_customers` (decision 2), so it is one-to-one with `customer_id`.
+2. **End of data** is the latest dated order (computed, 2014-01-28). A customer is **eligible** for a window of N days if their first order date is at most end of data minus N days. A **second order within N days** is the second order of the sequence, dated at most N days after the first (`DATEDIFF(day)`, inclusive).
+3. **Same-day orders:** a distinct `order_number` on the same date as the first order counts as a second order (0 days). The number of such customers is reported next to the rates of B and D; the number of customers with more than one order on their first date is reported in A and in the D and E sensitivity. Where the first order's class depends on the tie-break, a sensitivity excluding those customers is shown.
+4. **January 2014** orders count as follow-up orders. They never determine cohort membership. This is the only exception to 7.1, and a sensitivity with end of data 2013-12-31 is shown.
+5. **Minimum group size:** a rate is shown only for groups with at least 100 eligible customers; below that only the counts are shown. The median and the band shares of section C use the same condition on eligible customers, so they can rest on far fewer customers who reordered (29 for the 2013 cohort at 365 days); they are shown but not interpreted when fewer than 100 customers reordered.
+6. **Classification of the 2013 No bikes orders**, applied in this order: (a) first order of the customer; (b) later order on the same date as the customer's first order; (c) later date, with a Bike in an order dated earlier; (d) later date, no Bike earlier but a Bike in another order on the same date; (e) later date, no Bike in any earlier-dated or same-date order. A catch-all "unclassified" row must be 0.
+
+**Justification** Each rule fixes a choice the data does not settle (ties, end of data, partial periods). Writing them down before the analysis prevents choosing them after seeing the results, and the sensitivities show how much the results depend on them. The minimum group size avoids reading rates from groups too small to compare.
 
 ---
 

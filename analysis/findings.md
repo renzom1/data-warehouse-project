@@ -158,7 +158,6 @@ Revenue per line fell by 46.1% from 2011 to 2012 (1,719.82 / 3,192.73 = 0.539) a
 
 * How much of the 2012 fall within Bikes comes from new models replacing dearer ones and how much from volume shifting among continuing models. Not tested: this analysis does not compare the price level of the 13 products that left with the 26 that entered, nor the volume shares of the 24 continuing products between the two years.
 * The simultaneous appearance of 49 products and two new categories in December 2012 may reflect how the dataset was produced, or a business launch, rather than a gradual change. Products also first appear in a cluster in December 2011 and January 2012 (12 and 6, section G4), so the step from December 2011 to January 2012 may share the same origin. Cannot be tested with this data.
-* The 11,581 orders without a Bike in 2013 (section H) may be later purchases by customers who already bought a Bike, rather than purchases by a different kind of customer. This analysis works at order level and cannot distinguish the two.
 * Discounting or a list-price change may sit behind realized prices. Cannot be separated here.
 
 ### Uncertainty
@@ -167,7 +166,7 @@ Revenue per line fell by 46.1% from 2011 to 2012 (1,719.82 / 3,192.73 = 0.539) a
 * Product attributes are the current product version; a product's category could differ historically.
 * Section I covers only products sold in two consecutive years, uses realized prices, and says nothing about entering or exiting products.
 * 2011 and 2012 have few lines (2,216 and 3,397) against 52,798 in 2013; their shares and medians are less stable. 2013 itself changes within the year (Bike share of lines 29.9% in January 2013, 13.1% in February and 14.9% in March, section A2).
-* Customer mix is not examined: whether orders without a Bike come from customers who already bought a Bike or from other customers is unknown. Country mix is not examined either. Both could contribute.
+* Country mix is not examined and could contribute. Customer overlap between Bike orders and No bikes orders is answered in Q3 (Observation 9): no customer has both.
 * The 2011 to 2012 reading uses annual averages and an annual price index. The monthly step from December 2011 to January 2012 (3,015.29 to 1,965.73, section A2; −34.8%, 1,965.73 / 3,015.29 = 0.652) was not decomposed at monthly grain, so which products drive it is unknown.
 * "Product" means a distinct `product_number`. A relaunch under a new number would count as one product leaving and another entering, so new and exited products (sections G1, I) may overstate real assortment changes.
 
@@ -176,3 +175,90 @@ Revenue per line fell by 46.1% from 2011 to 2012 (1,719.82 / 3,192.73 = 0.539) a
 * List prices, discounts and price history, to separate price changes from discounting.
 * Information on how the data was generated or extracted, to interpret the abrupt appearance of products and categories in December 2012 and the step in December 2011 to January 2012.
 * A product-level price–mix decomposition (not done here) if the question of price against composition within Bikes must be answered.
+
+---
+
+## Q3. Do customers place a second order, how quickly, and who buys the 2013 No bikes orders?
+
+Source: [`03_repeat_purchasing.sql`](03_repeat_purchasing.sql), output in [`output/03_repeat_purchasing.txt`](output/03_repeat_purchasing.txt). Sections are cited by letter. Section G reconciles to the control totals (all `OK`: 60,398 lines, 27,659 orders, revenue 29,356,250, units 60,423, 18,484 customers) and section F has no unclassified orders. The rules (eligibility, same-day orders, January 2014 follow-up, minimum group size of 100 eligible customers, ties) are [decision 7.9](../docs/decisions.md#79-repeat-purchase-sequence-rules); order classes are [decision 7.8](../docs/decisions.md#78-order-classes-by-product-category). Inside the script customers are grouped by `customer_key`. Inside one query `customer_key` is the `ROW_NUMBER()` over `cst_id` of `gold.dim_customers` (decision 2), so it is one-to-one with `customer_id`; section G shows 18,484 of each. A second order is the customer's second distinct order; "within N days" counts customers whose first order is at least N days before the end of the data (2014-01-28).
+
+| Cohort (year of first order) | Customers | Dated orders | Customers with 2+ orders |
+|---|---|---|---|
+| 2011 | 2,216 | 4,624 | 1,955 |
+| 2012 | 3,225 | 6,793 | 2,955 |
+| 2013 | 12,521 | 15,697 | 1,935 |
+| Context: first order in the 2010 tail / January 2014 | 14 / 506 | 30 / 513 | 13 / 7 |
+| No dated order | 2 | 0 | 0 |
+| Total | 18,484 | 27,657 (+2 undated orders) | 6,865 |
+
+(Section A. The 6,865 customers with two or more orders match decision 7.6 and are descriptive context only. Orders per customer, 2.09, 2.11 and 1.25 for the three cohorts, depend on how long each cohort is observed and are not compared.)
+
+### Observations
+
+1. **Second orders within N days, by cohort (section B1; rate shown with eligible customers).**
+
+   | Cohort | 90 days | 180 days | 365 days |
+   |---|---|---|---|
+   | 2011 | 0 of 2,216 (0.0%) | 0 of 2,216 (0.0%) | 0 of 2,216 (0.0%) |
+   | 2012 | 47 of 3,225 (1.5%) | 209 of 3,225 (6.5%) | 1,451 of 3,225 (45.0%) |
+   | 2013 | 844 of 10,211 (8.3%) | 1,133 of 7,048 (16.1%) | 29 of 216 (13.4%) |
+
+   The columns of the 2013 row use different eligible customers (10,211, 7,048 and 216), so they are not compared across windows.
+
+   At 365 days the 2013 cohort covers only first orders from 2013-01-01 to 2013-01-28 (216 customers, section C2). Same-day second orders are 0 in the 2011 and 2012 cohorts and 7 (90 days) and 6 (180 days) in the 2013 cohort; excluding them the 2013 rates are 8.2% and 16.0%.
+2. **For the 2011 to 2013 cohorts, no second order occurs before the fourth quarter of 2012 (section B2).** The earliest quarter with a second order is the fourth quarter of 2012 (30 second orders from the 2011 cohort and 14 from the 2012 cohort). Second orders by quarter from the fourth quarter of 2012 to the fourth quarter of 2013: 2011 cohort 30, 546, 449, 490, 440; 2012 cohort 14, 392, 789, 853, 907; 2013 cohort (no second order before 2013) 127, 362, 537, 703 from the first to the fourth quarter of 2013, plus 206 in January 2014. The totals by cohort (1,955, 2,955 and 1,935) equal the customers with 2+ orders in section A.
+3. **Time to second order (section C1; customers eligible for 365 days who reordered within 365 days).** 2012 cohort: 1,451 customers, median 293.0 days; by band 0 days 0, 1 to 30 days 4, 31 to 90 days 43, 91 to 180 days 162, 181 to 365 days 1,242 (85.6%). 2013 cohort: 216 eligible, 29 reordered; bands 0, 4, 3, 10, 12 (counts only). 2011 cohort: no customer reordered within 365 days.
+4. **January 2014 follow-up changes little (section B3, 90 days, 2013 cohort).** With the end of the data at 2013-12-31: 786 of 9,196 (8.5%). With January 2014 follow-up: 844 of 10,211 (8.3%). The 2012 cohort is the same in both (47 of 3,225).
+5. **Second order by class of the first order (section D1; customers whose first order is on or after 2012-12-01).**
+
+   | First-order class | 90 days | 180 days |
+   |---|---|---|
+   | Bikes + other | 12 of 2,440 (0.5%) | 55 of 1,587 (3.5%) |
+   | Bikes only | 26 of 582 (4.5%) | 58 of 488 (11.9%) |
+   | No bikes | 831 of 7,500 (11.1%) | 1,072 of 5,284 (20.3%) |
+
+   Excluding the 8 customers with more than one order on their first date (all in the 2013 cohort, section A; 7 of them are eligible at 90 days and 6 at 180 days) changes only the No bikes rows: 824 of 7,493 (11.0%) and 1,066 of 5,278 (20.2%). Same-day second orders are 7 (90 days) and 6 (180 days), all in the No bikes class.
+6. **The No bikes second-order rate at 90 days differs by quarter of the first order (section D2).** 13.7% (1,989 eligible, first quarter of 2013), 10.9% (2,467), 9.9% (2,310), 8.4% (734, fourth quarter; first orders from 1 to 30 October only, because eligibility ends at 2013-10-30).
+7. **Second orders do not cross between Bike and No bikes customers; among Bike customers the class changes in 55 cases (section E, 180 days).** Bikes + other (1,587 eligible): no second order 1,532 (96.5%), Bikes + other 50 (3.2%), Bikes only 5 (0.3%). Bikes only (488): none 430 (88.1%), Bikes + other 50 (10.2%), Bikes only 8 (1.6%). No bikes (5,284): none 4,212 (79.7%), No bikes 1,072 (20.3%). Within 180 days no customer has a second order of the No bikes class after a first order with a Bike, or the reverse (for any date see observation 9, section F2). Excluding ties: No bikes 5,278 eligible, 4,212 (79.8%) and 1,066 (20.2%).
+8. **The 2013 No bikes orders (section F1).** Of the 11,581:
+
+   | Position in the customer's sequence | Orders | % of orders | Distinct customers |
+   |---|---|---|---|
+   | a. first order of the customer | 8,844 | 76.4 | 8,844 |
+   | b. later order, same date as the first order | 8 | 0.1 | 8 |
+   | c. later date, Bike in an earlier-dated order | 0 | 0.0 | 0 |
+   | d. later date, no earlier Bike, Bike on the same date | 0 | 0.0 | 0 |
+   | e. later date, no Bike earlier or on the same date | 2,729 | 23.6 | 1,643 |
+   | Total | 11,581 | 100.0 | 8,844 |
+
+   Shares are of orders (8,844 + 8 + 2,729 = 11,581). The 8,844 distinct customers of the total equal the 8,844 first orders in row a.
+9. **Customers who bought a Bike and customers with No bikes orders do not overlap (section F2).** 8,844 customers placed a No bikes order in 2013 and none of them had a Bike in an order dated before 2013; 5,455 customers had a Bike in an order dated before 2013 and none placed a No bikes order in 2013. At any date: 9,132 customers have at least one Bike order, none of them also a No bikes order; 9,352 have at least one No bikes order, none of them also a Bike order (9,132 + 9,352 = 18,484).
+
+### Inferences
+
+* **For the sequence of orders, the idea that the 2013 No bikes orders are later orders of customers with an earlier Bike is not supported.** None of the 11,581 No bikes orders of 2013 is a later order of a customer with an earlier Bike (rows c and d are 0). Because the 8,844 distinct customers equal the 8,844 first orders in row a, every customer with a 2013 No bikes order has a 2013 No bikes order as their first order in the data; 76.4% of these orders are those first orders and 23.6% (plus 8 same-day orders) are later orders of the same customers. Within this data the two kinds of order come from two separate groups of customers (observation 9).
+* **The 2011 cohort's 0% and the 2012 cohort's 45.0% at 365 days coincide with second orders not occurring before the fourth quarter of 2012 (observation 2).** Rates by cohort in section B are therefore not read as cohort effects. The output cannot tell calendar time from how the data was produced. The median days and the band shares in section C also depend on calendar time, since no second order occurs before the fourth quarter of 2012 for these cohorts, so they are not read as the speed of reordering.
+* **Customers whose first order has no Bike reorder more often than those whose first order has a Bike (observation 5), but the data cannot separate the class from the group of customers or from the period.** First-order class coincides with the customer group (observation 9), and the No bikes rate at 90 days differs by quarter of the first order (observation 6). The comparison of classes is therefore descriptive.
+* **At 90 days in the 2013 cohort (section B3) the rate is 8.3% with and 8.5% without January 2014 follow-up, and at most 7 customers per rate are same-day.**
+
+### Hypotheses (not established)
+
+* Customers with No bikes orders may be a population defined by what they buy (accessories, clothing), and their reorders may reflect that product type. Not tested: nothing in this analysis looks at what they buy.
+* The complete separation of the two customer groups may reflect how the dataset was produced rather than behaviour. Cannot be tested with this data.
+
+### Uncertainty
+
+* Customers are observed from 2010-12-29. "First order" means first order in the data; a customer may have bought earlier, especially in the 2011 cohort, in a direction that cannot be checked.
+* The 365-day figure of the 2013 cohort covers 216 customers whose first order is in January 2013, of whom 29 reordered; its band shares are based on 29 customers and are not interpreted.
+* The January 2014 sensitivity (B3) covers only 90 days by cohort, with different eligible populations in the two variants (9,196 and 10,211); the 180- and 365-day results and sections D and E have no such sensitivity.
+* Bikes only first orders include a large share from December 2012: 286 of 582 eligible at 90 days (49.1%) and 52 of the 58 reorders at 180 days (89.7%), section D2. So their rates and class transitions mix class with calendar and are not read as a class pattern.
+* Ties on the first date are broken by `order_number`, which is arbitrary; they affect 8 customers (observation 5) and change the No bikes rates by at most 0.1 point.
+* Whether the same-day second orders (7 and 6 customers) are real repeat purchases or split baskets cannot be told.
+* The results describe the order sequence of customers as identified in the data. A person with two customer records would appear as two customers.
+
+### Needs additional data
+
+* Customer history before 2010-12-29, to tell first orders in the data from first orders ever.
+* Information on how the data was generated, to interpret the complete separation of the two customer groups and the absence of second orders before the fourth quarter of 2012.
+* Customer identity resolution, if one person can hold several customer records.
+* What the No bikes customers buy and why they reorder, which needs product-level analysis not done here.

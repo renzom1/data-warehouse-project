@@ -1,0 +1,154 @@
+﻿Changed database context to 'DataWarehouse_Test'.
+--- A. CUSTOMERS AND ORDERS BY COHORT GROUP ---
+cohort_group|customers|orders_dated|undated_orders|orders_per_customer|customers_2plus_dated_orders|customers_2plus_orders_all|first_date_ties
+------------|---------|------------|--------------|-------------------|----------------------------|--------------------------|---------------
+1. First order in 2010 tail (context)|14|30|0|2.14|13|13|0
+2. Cohort 2011|2216|4624|0|2.09|1955|1955|0
+3. Cohort 2012|3225|6793|0|2.11|2955|2955|0
+4. Cohort 2013|12521|15697|0|1.25|1935|1935|8
+5. First order in January 2014 (context)|506|513|0|1.01|7|7|0
+6. No dated order|2|0|2|.00|0|0|0
+TOTAL|18484|27657|2|1.50|6865|6865|8
+--- B1. SECOND ORDER WITHIN N DAYS BY COHORT ---
+cohort|window_days|eligible|reordered|of_which_same_day|rate_pct|rate_excl_same_day_pct
+------|-----------|--------|---------|-----------------|--------|----------------------
+2011|90|2216|0|0|.0|.0
+2012|90|3225|47|0|1.5|1.5
+2013|90|10211|844|7|8.3|8.2
+2011|180|2216|0|0|.0|.0
+2012|180|3225|209|0|6.5|6.5
+2013|180|7048|1133|6|16.1|16.0
+2011|365|2216|0|0|.0|.0
+2012|365|3225|1451|0|45.0|45.0
+2013|365|216|29|0|13.4|13.4
+--- B2. SECOND ORDERS BY CALENDAR QUARTER AND COHORT ---
+cohort|quarter_of_second_order|second_orders
+------|-----------------------|-------------
+2011|2012-10-01|30
+2011|2013-01-01|546
+2011|2013-04-01|449
+2011|2013-07-01|490
+2011|2013-10-01|440
+2012|2012-10-01|14
+2012|2013-01-01|392
+2012|2013-04-01|789
+2012|2013-07-01|853
+2012|2013-10-01|907
+2013|2013-01-01|127
+2013|2013-04-01|362
+2013|2013-07-01|537
+2013|2013-10-01|703
+2013|2014-01-01|206
+--- B3. SENSITIVITY TO JANUARY 2014 FOLLOW-UP (N = 90) ---
+variant|cohort|eligible|reordered|rate_pct
+-------|------|--------|---------|--------
+end of data = 2013-12-31|2011|2216|0|.0
+end of data = latest dated order|2011|2216|0|.0
+end of data = 2013-12-31|2012|3225|47|1.5
+end of data = latest dated order|2012|3225|47|1.5
+end of data = 2013-12-31|2013|9196|786|8.5
+end of data = latest dated order|2013|10211|844|8.3
+--- C1. DAYS TO SECOND ORDER BY COHORT ---
+cohort|eligible|reordered_within_365|median_days|n_0_days|n_1_30|n_31_90|n_91_180|n_181_365|pct_0_days|pct_1_30|pct_31_90|pct_91_180|pct_181_365
+------|--------|--------------------|-----------|--------|------|-------|--------|---------|----------|--------|---------|----------|-----------
+2011|2216|0|NULL|0|0|0|0|0|NULL|NULL|NULL|NULL|NULL
+2012|3225|1451|293.0|0|4|43|162|1242|.0|.3|3.0|11.2|85.6
+2013|216|29|144.0|0|4|3|10|12|.0|13.8|10.3|34.5|41.4
+--- C2. 2013-COHORT CUSTOMERS ELIGIBLE AT N = 365 ---
+description|eligible_customers|first_order_from|first_order_to|end_of_data
+-----------|------------------|----------------|--------------|-----------
+2013 cohort, eligible at N = 365|216|2013-01-01|2013-01-28|2014-01-28
+--- D1. SECOND ORDER WITHIN N DAYS BY FIRST-ORDER CLASS ---
+variant|window_days|first_order_class|eligible|reordered|of_which_same_day|rate_pct|rate_excl_same_day_pct
+-------|-----------|-----------------|--------|---------|-----------------|--------|----------------------
+all customers|90|Bikes + other|2440|12|0|.5|.5
+all customers|90|Bikes only|582|26|0|4.5|4.5
+all customers|90|No bikes|7500|831|7|11.1|11.0
+all customers|180|Bikes + other|1587|55|0|3.5|3.5
+all customers|180|Bikes only|488|58|0|11.9|11.9
+all customers|180|No bikes|5284|1072|6|20.3|20.2
+excluding customers with >1 order on first date|90|Bikes + other|2440|12|0|.5|.5
+excluding customers with >1 order on first date|90|Bikes only|582|26|0|4.5|4.5
+excluding customers with >1 order on first date|90|No bikes|7493|824|0|11.0|11.0
+excluding customers with >1 order on first date|180|Bikes + other|1587|55|0|3.5|3.5
+excluding customers with >1 order on first date|180|Bikes only|488|58|0|11.9|11.9
+excluding customers with >1 order on first date|180|No bikes|5278|1066|0|20.2|20.2
+--- D2. BY QUARTER OF THE FIRST ORDER ---
+first_order_quarter|window_days|first_order_class|eligible|reordered|rate_pct
+-------------------|-----------|-----------------|--------|---------|--------
+2012-10-01|90|Bikes + other|25|0|NULL
+2012-10-01|90|Bikes only|286|25|8.7
+2013-01-01|90|Bikes + other|521|2|.4
+2013-01-01|90|Bikes only|66|0|NULL
+2013-01-01|90|No bikes|1989|273|13.7
+2013-04-01|90|Bikes + other|806|8|1.0
+2013-04-01|90|Bikes only|110|1|.9
+2013-04-01|90|No bikes|2467|268|10.9
+2013-07-01|90|Bikes + other|764|2|.3
+2013-07-01|90|Bikes only|79|0|NULL
+2013-07-01|90|No bikes|2310|228|9.9
+2013-10-01|90|Bikes + other|324|0|.0
+2013-10-01|90|Bikes only|41|0|NULL
+2013-10-01|90|No bikes|734|62|8.4
+2012-10-01|180|Bikes + other|25|0|NULL
+2012-10-01|180|Bikes only|286|52|18.2
+2013-01-01|180|Bikes + other|521|16|3.1
+2013-01-01|180|Bikes only|66|3|NULL
+2013-01-01|180|No bikes|1989|447|22.5
+2013-04-01|180|Bikes + other|806|30|3.7
+2013-04-01|180|Bikes only|110|3|2.7
+2013-04-01|180|No bikes|2467|463|18.8
+2013-07-01|180|Bikes + other|235|9|3.8
+2013-07-01|180|Bikes only|26|0|NULL
+2013-07-01|180|No bikes|828|162|19.6
+--- E. CLASS OF SECOND ORDER AGAINST CLASS OF FIRST ORDER (N = 180) ---
+variant|first_order_class|second_order_class|customers|eligible_in_row|row_pct
+-------|-----------------|------------------|---------|---------------|-------
+all customers|Bikes + other|(no second order within 180 days)|1532|1587|96.5
+all customers|Bikes + other|Bikes + other|50|1587|3.2
+all customers|Bikes + other|Bikes only|5|1587|.3
+all customers|Bikes only|(no second order within 180 days)|430|488|88.1
+all customers|Bikes only|Bikes + other|50|488|10.2
+all customers|Bikes only|Bikes only|8|488|1.6
+all customers|No bikes|(no second order within 180 days)|4212|5284|79.7
+all customers|No bikes|No bikes|1072|5284|20.3
+excluding customers with >1 order on first date|Bikes + other|(no second order within 180 days)|1532|1587|96.5
+excluding customers with >1 order on first date|Bikes + other|Bikes + other|50|1587|3.2
+excluding customers with >1 order on first date|Bikes + other|Bikes only|5|1587|.3
+excluding customers with >1 order on first date|Bikes only|(no second order within 180 days)|430|488|88.1
+excluding customers with >1 order on first date|Bikes only|Bikes + other|50|488|10.2
+excluding customers with >1 order on first date|Bikes only|Bikes only|8|488|1.6
+excluding customers with >1 order on first date|No bikes|(no second order within 180 days)|4212|5278|79.8
+excluding customers with >1 order on first date|No bikes|No bikes|1066|5278|20.2
+--- F1. 2013 NO-BIKES ORDERS BY POSITION IN THE CUSTOMER SEQUENCE ---
+category|orders|pct_of_orders|distinct_customers
+--------|------|-------------|------------------
+a. first order of the customer|8844|76.4|8844
+b. later order, same date as the first order|8|.1|8
+c. later date, Bike in an earlier-dated order|0|.0|0
+d. later date, no earlier Bike, Bike on the same date|0|.0|0
+e. later date, no Bike earlier or on the same date|2729|23.6|1643
+unclassified|0|.0|0
+TOTAL|11581|100.0|8844
+--- F2. CUSTOMER VIEW AND REVERSE DENOMINATOR ---
+description|customers|of_which|of_which_description|pct
+-----------|---------|--------|--------------------|---
+customers with at least one No bikes order in 2013|8844|0|of which had a Bike in an order dated before 2013|.0
+customers with a Bike in an order dated before 2013|5455|0|of which placed a No bikes order in 2013|.0
+customers with at least one Bike order (any date)|9132|0|of which also placed at least one No bikes order (any date)|.0
+customers with at least one No bikes order (any date)|9352|0|of which also placed at least one Bike order (any date)|.0
+--- G. CONTROL TOTALS ---
+check_name|actual_value|expected_value|status
+----------|------------|--------------|------
+lines|60398|60398|OK
+orders|27659|27659|OK
+revenue|29356250|29356250|OK
+units|60423|60423|OK
+customers (distinct customer_key in the fact table)|18484|18484|OK
+customers (distinct customer_id in gold.dim_customers)|18484|18484|OK
+orders without a customer|0|0|OK
+undated orders|2|2|OK
+customers in cohort groups (partition)|18484|18484|OK
+orders of customers in cohort groups (partition)|27659|27659|OK
+section F: 2013 No bikes orders|11581|11581|OK
+section F: unclassified orders|0|0|OK
