@@ -83,15 +83,16 @@ The validation scripts are located in:
 
 ## Analytical layer
 
-The analysis runs on top of the Gold layer and is organized as numbered, read-only SQL scripts in [`analysis/`](analysis/). Each script states its business question, the data it needs, the grain, the metric definitions, the method and its caveats.
+The analysis runs on top of the Gold layer and is organized as numbered, read-only SQL scripts in [`analysis/`](analysis/). Each script states its business question, the data it needs, the grain, the metric definitions, the method and its caveats. The questions themselves, with their status and a one-line answer, are listed in [`analysis/questions.md`](analysis/questions.md).
 
 | Script | Purpose |
 |---|---|
 | [`00_data_profile.sql`](analysis/00_data_profile.sql) | Control totals and the data-quality facts that every other analysis depends on. It runs no business analysis. |
 | [`01_revenue_trends.sql`](analysis/01_revenue_trends.sql) | Revenue, units and orders over time, seasonality, and whether growth comes from more orders or a higher order value. |
 | [`02_product_mix.sql`](analysis/02_product_mix.sql) | Product mix (category, subcategory, product line, order class) by year and around the AOV steps, and a like-for-like check of realized unit prices, to test whether mix changes help explain the decline in AOV. |
+| [`03_repeat_purchasing.sql`](analysis/03_repeat_purchasing.sql) | Repeat purchasing: second order within 90 / 180 / 365 days by first-order cohort and class, time to the second order, and whether the 2013 orders without a Bike are first orders or follow-on orders of Bike customers. |
 
-Planned lines of analysis: revenue concentration, geographic distribution, customer demographics, and repeat purchasing with RFM segmentation.
+Planned lines of analysis, written as questions in [`analysis/questions.md`](analysis/questions.md): revenue concentration, geographic distribution, customer demographics, and RFM segmentation.
 
 Results and their interpretation are recorded in [`analysis/findings.md`](analysis/findings.md), which separates direct observations, inferences, hypotheses, uncertainty and questions that need additional data.
 
@@ -101,7 +102,7 @@ Each script is run with [`scripts/run_analysis.ps1`](scripts/run_analysis.ps1), 
 scripts\run_analysis.ps1 -Script analysis\01_revenue_trends.sql -DatabaseName DataWarehouse_Test
 ```
 
-The analytical conventions that come out of the data profiling (analysis window, order dating, the meaning of `create_date`, repeat-purchase cohorts, order classes by product category) are recorded in decision 7 of [`docs/decisions.md`](docs/decisions.md). None of them changes Silver or Gold.
+The analytical conventions that come out of the data profiling (analysis window, order dating, the meaning of `create_date`, repeat-purchase cohorts, order classes by product category, repeat-purchase sequence rules) are recorded in decision 7 of [`docs/decisions.md`](docs/decisions.md). None of them changes Silver or Gold.
 
 ## Reproducible rebuild
 
@@ -200,6 +201,8 @@ data-warehouse-project/
 │   ├── 00_data_profile.sql
 │   ├── 01_revenue_trends.sql
 │   ├── 02_product_mix.sql
+│   ├── 03_repeat_purchasing.sql
+│   ├── questions.md
 │   ├── findings.md
 │   └── output/
 │

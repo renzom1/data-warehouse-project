@@ -14,8 +14,9 @@ Update this section at the end of every task, so the next session starts from he
 - **Analysis:**
   - Q0 data profile: done ([`analysis/00_data_profile.sql`](analysis/00_data_profile.sql), conventions in [decision 7](docs/decisions.md#7-analytical-conventions-established-by-the-data-profiling)).
   - Q1 revenue trends: done ([`analysis/01_revenue_trends.sql`](analysis/01_revenue_trends.sql), [`analysis/findings.md`](analysis/findings.md#q1-how-have-revenue-units-and-orders-changed-over-time)).
-  - Q2 product mix: done ([`analysis/02_product_mix.sql`](analysis/02_product_mix.sql), [`analysis/findings.md`](analysis/findings.md#q2-does-product-mix-help-explain-the-decline-in-aov), order classes in [decision 7.8](docs/decisions.md#78-order-classes-by-product-category)). The 2012→2013 AOV decline coincides with a large shift in product mix (Accessories/Clothing from Dec 2012), but the category mix does not account for all of it; the 2011→2012 step is not a category-mix effect and comes from the product mix within Bikes. No price–mix decomposition was done; it would be a separately approved extension. The section was revised after a conclusions-reviewer pass: the Bike subcategory counterfactual is shown under both weightings (shift +8.61 or +121.38), and customer-level and product-identity caveats were added.
-- **Next:** none chosen. Candidates (not commitments; confirm scope with the author): revenue concentration, geography, customer demographics, repeat purchasing / RFM.
+  - Q2 product mix: done ([`analysis/02_product_mix.sql`](analysis/02_product_mix.sql), [`analysis/findings.md`](analysis/findings.md#q2-does-product-mix-help-explain-the-decline-in-aov), order classes in [decision 7.8](docs/decisions.md#78-order-classes-by-product-category)). The 2012→2013 AOV decline coincides with a large shift in product mix (Accessories/Clothing from Dec 2012), but the category mix does not account for all of it; the 2011→2012 step is not a category-mix effect and comes from the product mix within Bikes. No price–mix decomposition was done; it would be a separately approved extension. The section was revised after a conclusions-reviewer pass: the Bike subcategory counterfactual is shown under both weightings (shift +8.61 or +121.38), and a product-identity caveat was added. The customer question (do Bike customers also place the No bikes orders?) is answered in Q3: no customer has both.
+  - Q3 repeat purchasing: done ([`analysis/03_repeat_purchasing.sql`](analysis/03_repeat_purchasing.sql), [`analysis/findings.md`](analysis/findings.md#q3-do-customers-place-a-second-order-how-quickly-and-who-buys-the-2013-no-bikes-orders), sequence rules in [decision 7.9](docs/decisions.md#79-repeat-purchase-sequence-rules)). For the 2011-2013 cohorts, no second order occurs before Q4 2012, so cohort differences are not read as cohort effects. The 2013 No bikes orders are not follow-on orders of Bike customers: in this data no customer has both a Bike order and a No bikes order, so they are two separate customer groups.
+- **Next:** none chosen. The business questions, with status, are in [`analysis/questions.md`](analysis/questions.md). Candidates there (Q4-Q7: revenue concentration, geography, customer demographics, RFM) are not commitments; confirm scope with the author.
 
 ## Commands
 
@@ -67,6 +68,7 @@ A new convention that affects how data is interpreted goes into [decision 7](doc
 
 ### An analysis (Qn) is done when
 
+0. Its question is registered in [`analysis/questions.md`](analysis/questions.md), and the header and the findings heading quote that wording.
 1. `analysis/0N_<topic>.sql` has the standard header: business question, data required, grain, definitions, method, caveats, control totals, run command (copy the structure of [`01_revenue_trends.sql`](analysis/01_revenue_trends.sql)).
 2. It ends with a control-totals section that prints `OK` / `MISMATCH` against the control totals, and every section's figures tie back to them.
 3. It was run with [`scripts\run_analysis.ps1`](scripts/run_analysis.ps1) and passed, and `analysis/output/0N_<topic>.txt` is saved in [`analysis/output/`](analysis/output/).
@@ -74,9 +76,9 @@ A new convention that affects how data is interpreted goes into [decision 7](doc
    - Before presenting the section, run the [`findings-verifier`](.claude/agents/findings-verifier.md) subagent on it ("verify section QN of analysis/findings.md"). Fix every `error` and `warning` it reports, then run it again on the whole section (not only the edited lines). `note` items do not block; fix them only when the fix is simple and adds no new claim.
    - **At most 3 verifier passes.** Stop earlier when a pass reports no `error` or `warning`. If the third pass still reports any, stop and give the author that report with what you fixed in each pass; the author decides. Each rewrite of interpretive text can add new issues, so check every fix (yours or the verifier's) against the output before applying it, and prefer removing or narrowing a claim over adding a new one.
    - Give the author the last verifier report.
-5. The [README analysis table](README.md#analytical-layer) and [Current status](#current-status) are updated, as is [decision 7](docs/decisions.md#7-analytical-conventions-established-by-the-data-profiling) if a new convention was introduced.
+5. The question's row in [`analysis/questions.md`](analysis/questions.md) is moved to Answered with its one-line answer, the [README analysis table](README.md#analytical-layer) and [Current status](#current-status) are updated, as is [decision 7](docs/decisions.md#7-analytical-conventions-established-by-the-data-profiling) if a new convention was introduced.
 
-Before writing a new analysis script, present a short plan (question, metrics, method, expected sections) and wait for the author's OK. That plan is the main point of review. After it is approved, implement without stopping for small details.
+Before writing a new analysis script, pick or add its question in [`analysis/questions.md`](analysis/questions.md), then present a short plan (question, metrics, method, expected sections) and wait for the author's OK. That plan is the main point of review. After it is approved, implement without stopping for small details.
 
 ### A pipeline change (Bronze / Silver / Gold / sources) is done when
 
@@ -92,6 +94,7 @@ Before writing a new analysis script, present a short plan (question, metrics, m
 - Surrogate keys (`customer_key`, `product_key`) come from `ROW_NUMBER()` in views and are not stable ([decision 1](docs/decisions.md#1-implementing-the-gold-layer-with-views), [decision 2](docs/decisions.md#2-surrogate-keys-in-the-dimensions)). Never hardcode them; use `customer_id` / `product_number` to refer to specific entities.
 - `gold.dim_products` holds current product versions only (`prd_end_dt IS NULL`): 295 of 397 Silver rows ([`scripts/gold/ddl.sql`](scripts/gold/ddl.sql)).
 - After a join, compare row counts before and after to catch fan-out.
+- **Do not join line-level rows to a Gold dimension view on its surrogate key when the dimension is large** (`gold.dim_customers`, 18,484 rows). The key is a `ROW_NUMBER()` and the join can recompute the view per row: Q3's first version ran for 18+ minutes in section A, and 40 seconds once the 60k lines were aggregated by `customer_key` first and the view was read only for a scalar check. Group by the fact table's key inside one query (never report or hardcode it) and check its 1:1 relation with the natural key (`customer_id`) once.
 - **Reference a CTE built on the Gold views only once.** SQL Server does not materialize CTEs: every reference re-expands the view chain (including the `ROW_NUMBER()` in `gold.dim_*`), so a CTE used twice (e.g. a `LEFT JOIN` plus `WHERE x IN (SELECT ... FROM cte)`, or a self-join of a product × year CTE) doubles the cost, and Q2 sections took 20+ minutes this way. Aggregate once and derive the rest from that small result with window functions (`LAG`, `COUNT(...) OVER`, `GROUPING SETS`). Do not create temp tables or other objects (analysis is read-only).
 
 ## Where knowledge lives
@@ -100,6 +103,7 @@ Before writing a new analysis script, present a short plan (question, metrics, m
 |---|---|---|
 | [`docs/decisions.md`](docs/decisions.md) | Architecture, modeling and analytical decisions with justification | A decision affects semantics, modeling, methodology or reproducibility |
 | [`docs/rebuild_baseline.md`](docs/rebuild_baseline.md) | Expected counts and totals per layer | An expected value changes on purpose (together with [`scripts/validate.sql`](scripts/validate.sql)) |
+| [`analysis/questions.md`](analysis/questions.md) | The business questions, their status and a one-line answer | A question is proposed or answered, or a later analysis changes an earlier answer |
 | [`analysis/findings.md`](analysis/findings.md) | Results and how far each can be taken | Each analysis is completed |
 | [`analysis/output/`](analysis/output/) | Saved output of each analysis script (evidence for findings) | Each analysis is run with [`run_analysis.ps1`](scripts/run_analysis.ps1) |
 | This file, [Current status](#current-status) and [Known pitfalls](#known-pitfalls) | Where the project is, and traps worth remembering | End of every task / when a new trap is found |
