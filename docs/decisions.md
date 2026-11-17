@@ -365,6 +365,23 @@ These decisions come from profiling `gold` before the analysis phase (`analysis/
 
 **Justification** Each rule fixes a choice the data does not settle (ties, end of data, partial periods). Writing them down before the analysis prevents choosing them after seeing the results, and the sensitivities show how much the results depend on them. The minimum group size avoids reading rates from groups too small to compare.
 
+### 7.10 Customer groups by Bike purchase
+
+**Observed.** Q3 section F2 (`analysis/output/03_repeat_purchasing.txt`): 9,132 customers have at least one dated order containing a Bike, and 9,352 have at least one No bikes order. No customer is in both, and 9,132 + 9,352 = 18,484, which is every customer.
+
+**Decision.** For analyses that split customers by what they buy, each customer is assigned one group over the whole data, regardless of year:
+
+* **Bike customer:** at least one order with an order-level date (7.2) that contains at least one line of category Bikes.
+* **No bikes customer:** every other customer.
+
+This is the definition of Q3 section F2 (`earliest_bike_dt IS NOT NULL`). Category is the current product version (7.8). The two groups are mutually exclusive and exhaustive by construction.
+
+The 2 customers with no dated order cannot be Bike customers, because the definition requires a dated order, so both fall in No bikes. Their revenue (34) belongs to no year, so they appear in no year-level group row; they count only in the 18,484 partition.
+
+The group uses the whole data, so a customer's group in one year can rest on an order from another year. In this data every order of a Bike customer contains a Bike (no customer has both a Bike order and a No bikes order, Q3 section F2), so the group matches the customer's own orders in every year. That is a fact of the data, not of the definition; section G of Q4 checks it on every run (customers in both groups = 0; 9,132 / 9,352 / 18,484).
+
+**Justification** Order classes (7.8) describe orders. Comparing customers across years needs a property of the customer. The group separates the two populations of Q3 observation 9 without weights or thresholds.
+
 ---
 
 

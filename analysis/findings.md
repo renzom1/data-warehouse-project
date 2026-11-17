@@ -262,3 +262,97 @@ Source: [`03_repeat_purchasing.sql`](03_repeat_purchasing.sql), output in [`outp
 * Information on how the data was generated, to interpret the complete separation of the two customer groups and the absence of second orders before the fourth quarter of 2012.
 * Customer identity resolution, if one person can hold several customer records.
 * What the No bikes customers buy and why they reorder, which needs product-level analysis not done here.
+
+---
+
+## Q4. How concentrated is revenue: what share of revenue is accounted for by the highest-revenue customers and products?
+
+Source: [`04_revenue_concentration.sql`](04_revenue_concentration.sql), output in [`output/04_revenue_concentration.txt`](output/04_revenue_concentration.txt), plan in [`04_plan.md`](04_plan.md). Sections are cited by letter. Section G reconciles to the control totals (all 29 checks `OK`: 60,398 lines, 27,659 orders, revenue 29,356,250, units 60,423, 18,484 customers; revenue by year, by customer group, by product and by category equals 7,075,088 / 5,842,231 / 16,349,836 for 2011 / 2012 / 2013; 9,132 Bike customers + 9,352 No bikes customers = 18,484, and no customer has both a Bike order and a No bikes order). The customer groups are [decision 7.10](../docs/decisions.md#710-customer-groups-by-bike-purchase). The minimum sizes (a customer statistic is interpreted only with at least 100 active customers and a top group of at least 30) are specific to Q4 and are declared in the plan, not in decision 7. Inside the script customers are grouped by `customer_key` and never reported.
+
+Reading rules used below. A **top p% group** is the k = CEILING(p × N) highest-revenue active customers of the year (N = active customers). **Equal-distribution reference:** if every active customer had the same revenue, a top p% group would hold p% of revenue. A product cut is the n highest-revenue products, and n of N products would hold n / N of revenue under an equal distribution. N is shown next to every share. The "interpretable" flag of the output checks only the sizes (N and k); it does not mean that a figure says something about customers (see Inferences 1).
+
+### Observations
+
+1. **Active customers and revenue per customer by year (section A).**
+
+   | Year | Active customers | Revenue | Mean | Median | P90 | P99 | Max | Mean / median |
+   |---|---|---|---|---|---|---|---|---|
+   | 2011 | 2,216 | 7,075,088 | 3,192.73 | 3,578.00 | 3,578.00 | 3,578.00 | 3,578 | 0.89 |
+   | 2012 | 3,255 | 5,842,231 | 1,794.85 | 2,071.00 | 2,443.00 | 2,443.00 | 4,985 | 0.87 |
+   | 2013 | 17,427 | 16,349,836 | 938.19 | 243.00 | 2,443.00 | 4,805.00 | 10,865 | 3.86 |
+
+   In 2011 all 2,216 customers have one order (revenue 7,075,088). In 2012, 3,241 customers have one order (5,791,711) and 14 have two (50,520). In 2013, 14,762 customers have one order (11,840,518), 2,191 have two (3,904,917) and 474 have three or more (604,401). Customers with two or more orders in 2013 are 2,191 + 474 = 2,665 (15.3% of 17,427) and account for 3,904,917 + 604,401 = 4,509,318, which is 27.6% of 16,349,836 (4,509,318 / 16,349,836 = 0.2758). The other 14,762 customers (84.7%) account for 11,840,518 (72.4%).
+
+2. **Ties and the group rule in 2011 and 2012 (section D).** In 2011, 1,544 customers have the same revenue, so they tie at the boundary of every cut. That revenue is the maximum of section A, 3,578: 1,544 × 3,578 = 5,524,432, which is 78.08% of 7,075,088, the tie-inclusive share in D. The five largest products of 2011 sold 335 + 334 + 301 + 294 + 280 = 1,544 units, each at 3,578 (section E3: 1,198,630 / 335 = 3,578), for revenue 5,524,432 (E2) (the output does not link these customers to these products). The top 1% (23 customers) holds 1.16% under CEILING and 78.08% when the group includes every customer tied with the 23rd (k = 23, below the minimum; shown only for the tie effect). In 2012, 431 customers tie at the boundary of the 1%, 5% and 10% cuts and 749 at the 20% cut; the top 1% (33 customers) holds 1.67% under CEILING and 19.23% tie-inclusive (453 customers), and the top 20% (651 customers) holds 26.70% against 48.25% (1,228 customers).
+
+3. **Customer concentration, all customers (section B; context, see Inferences 1 and 2).** Each cell gives the top group (k customers) and its share of the year's revenue.
+
+   | Year | Active customers (N) | Top 1% | Top 5% | Top 10% | Top 20% |
+   |---|---|---|---|---|---|
+   | 2011 (context; see Inference 1) | 2,216 | 23: 1.2% (not interpreted: k < 30) | 111: 5.6% | 222: 11.2% | 444: 22.5% |
+   | 2012 (context; see Inference 1) | 3,255 | 33: 1.7% | 163: 7.1% | 326: 13.9% | 651: 26.7% |
+   | 2013 | 17,427 | 175: 6.1% | 872: 24.1% | 1,743: 37.5% | 3,486: 62.9% |
+   | Equal-distribution reference | | 1% | 5% | 10% | 20% |
+
+4. **The two customer groups in 2013 (section C1).** Bike customers are 8,583 of 17,427 active customers (49.3%) and account for 15,763,398 of 16,349,836 (96.4%). No bikes customers are 8,844 (50.7%) and account for 586,438 (3.6%); 8,583 + 8,844 = 17,427. In 2011 and 2012 all active customers are Bike customers (the No bikes group has 0 active customers).
+
+   | 2013 | Active customers | Revenue | Mean | P10 | Median | P90 | P99 | Max | Mean / median |
+   |---|---|---|---|---|---|---|---|---|---|
+   | Bike customers | 8,583 | 15,763,398 | 1,836.58 | 571.00 | 1,736.00 | 3,096.60 | 4,860.00 | 10,865 | 1.06 |
+   | No bikes customers | 8,844 | 586,438 | 66.31 | 7.00 | 50.00 | 129.00 | 276.00 | 1,537 | 1.33 |
+
+   The median revenue of Bike customers (1,736) is above the largest revenue of any No bikes customer (1,537), so at least half of the 8,583 Bike customers, at least 4,292, have more revenue than every No bikes customer. The top 20% of all 2013 customers is 3,486 customers (section B), fewer than 4,292, so every top group of all customers in 2013 (1%, 5%, 10%, 20%) contains only Bike customers.
+
+5. **Top shares inside each group in 2013 (section C2).** The denominator is the group's own revenue. All eight figures are above the minimum sizes (N ≥ 100, k ≥ 30).
+
+   | 2013, group | Active customers (N) | Top 1% | Top 5% | Top 10% | Top 20% |
+   |---|---|---|---|---|---|
+   | Bike customers | 8,583 | 86: 3.6% | 430: 14.0% | 859: 24.7% | 1,717: 38.5% |
+   | No bikes customers | 8,844 | 89: 8.6% | 443: 20.9% | 885: 31.8% | 1,769: 48.4% |
+   | Equal-distribution reference | | 1% | 5% | 10% | 20% |
+
+   The No bikes group holds a larger share than the Bike group at every cut (8.6 against 3.6, 20.9 against 14.0, 31.8 against 24.7, 48.4 against 38.5). At the 20% cut the shares are 38.5 / 20 = 1.9 and 48.4 / 20 = 2.4 times the reference; at the 1% cut they are 3.6 and 8.6 times.
+
+6. **Sensitivity to the group rule in 2013 (section D).** Among the eight group rows (two groups, four cuts), the tie-inclusive share exceeds the CEILING share by at most 0.99 points (Bike customers, top 20%: 39.51 against 38.52; 113 customers tie at the boundary, group of 1,781 against 1,717). The FLOOR share is below the CEILING share by at most 0.05 points (No bikes customers, top 1%: 8.53 against 8.58). For all customers in 2013 the tie-inclusive shares are 6.15, 24.07, 38.10 and 63.46 against 6.09, 24.05, 37.53 and 62.89 under CEILING (3, 2, 113 and 80 customers tied at the boundary).
+
+7. **Products (sections E1 and E2).** N is the number of products with revenue in the year.
+
+   | Year | Active products (N) | Top 1 | Top 5 | Top 10 | Top 20 | Median revenue per product | Mean / median |
+   |---|---|---|---|---|---|---|---|
+   | 2011 | 37 | 16.9% | 78.1% | 90.9% | 98.5% | 14,679.00 | 13.03 |
+   | 2012 | 80 | 7.3% | 33.6% | 64.2% | 92.2% | 1,660.50 | 43.98 |
+   | 2013 | 102 | 5.9% | 29.1% | 44.6% | 67.0% | 39,133.00 | 4.10 |
+
+   Under an equal distribution the top 10 products would hold 10 / 37 = 27.0%, 10 / 80 = 12.5% and 10 / 102 = 9.8% of revenue. No product ties at the boundary of any cut (section E2, 1 product at each); the 2013 tie at ranks 3 and 4 falls inside the cuts, not at their boundary.
+
+8. **The largest products and the categories (sections E3 and F).** The 10 largest products of each year are all in the category Bikes. In 2011 the five largest have 14.2% to 16.9% of revenue each and the sixth 2.9%. In 2013 the six largest have 5.5% to 5.9% each and the seventh 2.6% (417,200 against 902,480 for the sixth); ranks 3 and 4 tie at 947,835. In 2012, 30 of the 80 active products are Accessories (19) or Clothing (11) with revenue 2,146 + 642 = 2,788 (2,788 / 5,842,231 = 0.05% of the year's revenue); the other 50 are Bikes (5,839,443). In 2013 Bikes are 60 of 102 active products (58.8%) and 93.9% of revenue; Accessories (22 products) are 4.1% and Clothing (20 products) 2.0% (the shares tie to Q2 section C).
+
+### Inferences
+
+1. **The customer concentration of 2011 and 2012 is context only, even where the "interpretable" flag says "yes", and customer shares are not compared across years.** In 2011 every customer has one order and revenue per customer is the price of one bike (observations 1 and 2; Q1 section A has 2,216 orders, lines and units, and Q3 section A 2,216 customers in the 2011 cohort). Many customers have exactly the same revenue (1,544 in 2011; 431 to 749 tied at the cut boundaries in 2012), so the share of a top group is mostly a matter of how many customers are tied: the 5% cut (k = 111) gives 5.61% under CEILING and 78.08% under the tie-inclusive rule (section D). In 2012, 3,241 of 3,255 customers have one order and 431 to 749 customers tie at the boundary of the cuts (1.67% against 19.23% at the 1% cut). The flag checks only N and k. The figures say how prices are spread, not how customers differ.
+2. **The customer result of Q4 is 2013 within each group, and the all-customers figures of section B reflect the group mix.** The 2013 top 20% of all customers holds 62.9% (observation 3), more than the top 20% of either group (38.5% and 48.4%, observation 5). The two groups have similar numbers of active customers (49.3% and 50.7%) but 96.4% and 3.6% of revenue (observation 4). Every top group of all customers in 2013 contains only Bike customers (observation 4), so the shares of section B for 2013 rank Bike customers against the revenue and the customer count of both groups.
+3. **Inside each 2013 group, the top groups hold the shares of observation 5 against the equal-distribution reference.** The top 20% holds 38.5% and 48.4% of the group's revenue (1.9 and 2.4 times the reference); the top 1% holds 3.6% and 8.6% (3.6 and 8.6 times). The No bikes group holds a larger share than the Bike group at every cut, and the difference between rules is below one point (observation 6), so the reading does not change with the rule. These shares describe how revenue is spread among customers within a year, which may reflect prices and the number of orders; the output does not separate them. They do not say why, and they are not a statement about any business risk.
+4. **Customers with two or more orders in 2013 are a minority of customers, whose share of revenue (27.6%) is larger than their share of customers (15.3%).** They are 15.3% of active customers and 27.6% of revenue (observation 1). A customer's yearly revenue combines the number of orders and the value per order, and the output does not separate them within the groups, so the concentration of observation 5 is not attributed to either.
+5. **Products: the 10 largest are Bikes in every year, and a revenue share combines price and volume; it is not a measure of popularity.** The top cuts of observation 7 are given with N and are not compared across years: N (37, 80, 102) and the catalog change (in 2012, 30 of 80 products are Accessories or Clothing with 2,788 of revenue, observation 8), so a cut of a given size is not the same kind of group in each year. Within a year the output shows that a small group of Bike products accounts for much of the revenue, for example 44.6% for the 10 largest of 102 in 2013 against 9.8% under an equal distribution.
+
+### Hypotheses (not established)
+
+* The higher share of the No bikes group at every cut (observation 5) may reflect how many orders a customer placed and how early in 2013 they started, more than differences in what they spend per order. Not tested here: A splits customers by number of orders only for all customers together.
+* The single value 3,578 shared by 1,544 customers in 2011 and the 431 to 749 ties in 2012 may reflect a list with few price points, or how the data was generated, more than customer behaviour. Cannot be tested with this data.
+* Within the Bike group, the 2013 spread of revenue per customer (observation 5) may mostly reflect the spread of bike prices and the number of orders, as in 2011 and 2012. Not tested here: the output does not show orders per customer or revenue per order inside each group.
+
+### Uncertainty
+
+* Apart from the 2013 top groups of all customers (observation 4), the output does not show **who** is in a top group, whether the same customers or products stay in it **across years**, or its **composition** (for customers: what they buy, how many orders they placed, when they started; for products, only the category of the 10 largest and the category shares of revenue). Customers are not followed across years.
+* A customer's yearly revenue may vary with the months in which the customer was active: in 2013 there are 12,521 customers whose first order is in 2013 (Q3 section A) and there is no No bikes order in 2011 or 2012 (Q2 section H; Q4 section C1). The ranking of customers may partly reflect when they started in the year; the output does not show this.
+* The share of a top percentage is tied to N, which changes by year (2,216, 3,255, 17,427 customers; 37, 80, 102 products). Cuts of the same name are different groups in different years.
+* The customer group (decision 7.10) uses the whole data, so a customer's group in one year can rest on an order of another year. In this data no customer has both a Bike order and a No bikes order (section G), so the group matches the customer's own orders in every year.
+* Rank ties among products are broken by `product_number`; the shares do not change with the tie-break, but the lists can (2013, ranks 3 and 4).
+* A product is a distinct `product_number`, current version only (Q2): a relaunch under a new number counts as two products. Category is the current version's.
+* Product codes that differ only in suffix (for example `BK-M68B-42` / `-46`, or `BK-R93R-44` / `-48`) may be variants of one model. Product shares change with that grain and would differ at model level; no model-level figure was computed.
+* Revenue is `SUM(sales_amount)` and the currency is unknown. The pattern may reflect how the data was produced.
+
+### Needs additional data
+
+* Customer identity resolution, if one person can hold several customer records (a person with two records appears as two customers).
+* Information on how the data was generated, to interpret the single price value of 2011 and the absence of No bikes customers in 2011 and 2012.
