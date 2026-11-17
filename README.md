@@ -91,8 +91,9 @@ The analysis runs on top of the Gold layer and is organized as numbered, read-on
 | [`01_revenue_trends.sql`](analysis/01_revenue_trends.sql) | Revenue, units and orders over time, seasonality, and whether growth comes from more orders or a higher order value. |
 | [`02_product_mix.sql`](analysis/02_product_mix.sql) | Product mix (category, subcategory, product line, order class) by year and around the AOV steps, and a like-for-like check of realized unit prices, to test whether mix changes help explain the decline in AOV. |
 | [`03_repeat_purchasing.sql`](analysis/03_repeat_purchasing.sql) | Repeat purchasing: second order within 90 / 180 / 365 days by first-order cohort and class, time to the second order, and whether the 2013 orders without a Bike are first orders or follow-on orders of Bike customers. |
+| [`04_revenue_concentration.sql`](analysis/04_revenue_concentration.sql) | Revenue concentration: the share of revenue of the top 1 / 5 / 10 / 20% of customers by year and inside the Bike and No bikes customer groups, the largest products and the category shares, with a sensitivity to ties. |
 
-Planned lines of analysis, written as questions in [`analysis/questions.md`](analysis/questions.md): revenue concentration, geographic distribution, customer demographics, and RFM segmentation.
+Planned lines of analysis, written as questions in [`analysis/questions.md`](analysis/questions.md): geographic distribution, customer demographics, RFM segmentation, and composition by category and product.
 
 Results and their interpretation are recorded in [`analysis/findings.md`](analysis/findings.md), which separates direct observations, inferences, hypotheses, uncertainty and questions that need additional data.
 
@@ -102,7 +103,7 @@ Each script is run with [`scripts/run_analysis.ps1`](scripts/run_analysis.ps1), 
 scripts\run_analysis.ps1 -Script analysis\01_revenue_trends.sql -DatabaseName DataWarehouse_Test
 ```
 
-The analytical conventions that come out of the data profiling (analysis window, order dating, the meaning of `create_date`, repeat-purchase cohorts, order classes by product category, repeat-purchase sequence rules) are recorded in decision 7 of [`docs/decisions.md`](docs/decisions.md). None of them changes Silver or Gold.
+The analytical conventions that come out of the data profiling (analysis window, order dating, the meaning of `create_date`, repeat-purchase cohorts, order classes by product category, repeat-purchase sequence rules, customer groups by Bike purchase) are recorded in decision 7 of [`docs/decisions.md`](docs/decisions.md). None of them changes Silver or Gold.
 
 ## Reproducible rebuild
 
@@ -202,6 +203,7 @@ data-warehouse-project/
 │   ├── 01_revenue_trends.sql
 │   ├── 02_product_mix.sql
 │   ├── 03_repeat_purchasing.sql
+│   ├── 04_revenue_concentration.sql
 │   ├── questions.md
 │   ├── findings.md
 │   └── output/
