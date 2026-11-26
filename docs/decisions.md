@@ -382,6 +382,18 @@ The group uses the whole data, so a customer's group in one year can rest on an 
 
 **Justification** Order classes (7.8) describe orders. Comparing customers across years needs a property of the customer. The group separates the two populations of Q3 observation 9 without weights or thresholds.
 
+### 7.11 Country attribution
+
+**Observed.** `gold.dim_customers` has one row per customer and no history. Its `country` comes from ERP `loc_a101`, normalised in Silver (DE -> Germany, US / USA -> United States, empty or NULL -> `N/A`). The Q0 profile (`analysis/output/00_data_profile.txt`) shows 337 customers with `N/A` and none with NULL. The load date of the extraction is not known (`create_date` is a load date, 7.4).
+
+**Decision.** For analyses by country:
+
+* Each order belongs to the country recorded for its customer, and each customer is attributed to that country for all years. Whether a customer moved cannot be checked. The country is the customer's location in the source, not where the order shipped.
+* `N/A` is its own category. It is never imputed, it is not read as a place, and it stays in every total.
+* Across countries, only customer and order shares are read. Revenue shares and AOV levels across countries are printed with the flag "comparable only if amounts are in one currency, which the data cannot show". A within-country AOV change is read assuming that the country's amounts are in one unit over time.
+
+**Justification** The dimension has no history, so any other attribution would need an assumption the data cannot test. Keeping `N/A` visible avoids moving 337 customers into a country by guess. Writing the reading rule before the run avoids choosing it after seeing which countries differ.
+
 ---
 
 

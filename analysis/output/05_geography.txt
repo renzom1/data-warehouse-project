@@ -1,0 +1,152 @@
+﻿Changed database context to 'DataWarehouse_Test'.
+--- A1. CUSTOMERS IN THE DIMENSION BY COUNTRY ---
+country|country_note|customers|distinct_customer_ids|customer_share_pct
+-------|------------|---------|---------------------|------------------
+United States||7482|7482|40.5
+Australia||3591|3591|19.4
+United Kingdom||1913|1913|10.3
+France||1810|1810|9.8
+Germany||1780|1780|9.6
+Canada||1571|1571|8.5
+N/A|not a country|337|337|1.8
+TOTAL||18484|18484|100.0
+--- A2. ACTIVE CUSTOMERS, ORDERS AND REVENUE BY COUNTRY AND PERIOD ---
+revenue_share_pct_flagged: comparable only if amounts are in one currency, which the data cannot show (not interpreted).
+period|country|country_note|customers|customer_share_pct|orders|order_share_pct|lines|units|revenue|revenue_share_pct_flagged
+------|-------|------------|---------|------------------|------|---------------|-----|-----|-------|-------------------------
+2010 tail (context)|TOTAL||14|100.0|14|100.0|14|14|43419|100.0
+2010 tail (context)|Australia||6|42.9|6|42.9|6|6|20909|48.2
+2010 tail (context)|United States||5|35.7|5|35.7|5|5|14833|34.2
+2010 tail (context)|Canada||1|7.1|1|7.1|1|1|3578|8.2
+2010 tail (context)|France||1|7.1|1|7.1|1|1|3400|7.8
+2010 tail (context)|United Kingdom||1|7.1|1|7.1|1|1|699|1.6
+2011|TOTAL||2216|100.0|2216|100.0|2216|2216|7075088|100.0
+2011|Australia||786|35.5|786|35.5|786|786|2563589|36.2
+2011|United States||768|34.7|768|34.7|768|768|2450966|34.6
+2011|Germany||175|7.9|175|7.9|175|175|520468|7.4
+2011|United Kingdom||175|7.9|175|7.9|175|175|550558|7.8
+2011|Canada||170|7.7|170|7.7|170|170|571533|8.1
+2011|France||140|6.3|140|6.3|140|140|410818|5.8
+2011|N/A|not a country|2|.1|2|.1|2|2|7156|.1
+2012|TOTAL||3255|100.0|3269|100.0|3397|3397|5842231|100.0
+2012|Australia||1127|34.6|1130|34.6|1167|1167|2128322|36.4
+2012|United States||864|26.5|865|26.5|888|888|1434639|24.6
+2012|United Kingdom||402|12.4|405|12.4|423|423|712680|12.2
+2012|France||356|10.9|359|11.0|373|373|648050|11.1
+2012|Germany||335|10.3|339|10.4|368|368|608634|10.4
+2012|Canada||169|5.2|169|5.2|172|172|307592|5.3
+2012|N/A|not a country|2|.1|2|.1|6|6|2314|.0
+2013|TOTAL||17427|100.0|21287|100.0|52798|52823|16349836|100.0
+2013|United States||6909|39.6|7269|34.1|18096|18104|5245041|32.1
+2013|Australia||3532|20.3|4640|21.8|11054|11055|4338859|26.5
+2013|Canada||1402|8.0|2856|13.4|6863|6873|1085582|6.6
+2013|United Kingdom||1867|10.7|2377|11.2|6135|6139|2123728|13.0
+2013|France||1696|9.7|1916|9.0|4878|4879|1578268|9.7
+2013|Germany||1701|9.8|1909|9.0|4937|4938|1761691|10.8
+2013|N/A|not a country|320|1.8|320|1.5|835|835|216667|1.3
+Jan 2014 (context)|TOTAL||834|100.0|871|100.0|1970|1970|45642|100.0
+Jan 2014 (context)|United States||320|38.4|322|37.0|715|715|16843|36.9
+Jan 2014 (context)|Canada||152|18.2|179|20.6|414|414|9453|20.7
+Jan 2014 (context)|Australia||152|18.2|156|17.9|332|332|8493|18.6
+Jan 2014 (context)|United Kingdom||70|8.4|73|8.4|172|172|3711|8.1
+Jan 2014 (context)|France||66|7.9|67|7.7|164|164|3186|7.0
+Jan 2014 (context)|Germany||61|7.3|61|7.0|145|145|3273|7.2
+Jan 2014 (context)|N/A|not a country|13|1.6|13|1.5|28|28|683|1.5
+undated (context)|TOTAL||2|100.0|2|100.0|3|3|34|100.0
+undated (context)|France||1|50.0|1|50.0|2|2|29|85.3
+undated (context)|United States||1|50.0|1|50.0|1|1|5|14.7
+--- B. ORDER SHARE AND AOV BY COUNTRY AND YEAR (TOTAL NEXT TO THE COUNTRIES) ---
+aov_level_flagged: comparable across countries only if amounts are in one currency, which the data cannot show (not interpreted); the changes within a country are read.
+country|country_note|yr|orders|order_share_pct|aov_level_flagged|aov_minimum_100_orders|aov_change|aov_change_pct|change_rule_both_years|total_aov_change|sign_vs_total|named_countries_below_100_orders
+-------|------------|--|------|---------------|-----------------|----------------------|----------|--------------|----------------------|----------------|-------------|--------------------------------
+TOTAL||2011|2216|100.0|3192.73|interpreted|NULL|NULL|n/a (first year)|NULL||0
+TOTAL||2012|3269|100.0|1787.16|interpreted|-1405.57|-44.0|total|-1405.57||0
+TOTAL||2013|21287|100.0|768.07|interpreted|-1019.09|-57.0|total|-1019.09||0
+Australia||2011|786|35.5|3261.56|interpreted|NULL|NULL|n/a (first year)|NULL||0
+Australia||2012|1130|34.6|1883.47|interpreted|-1378.09|-42.3|interpreted|-1405.57|same sign|0
+Australia||2013|4640|21.8|935.10|interpreted|-948.37|-50.4|interpreted|-1019.09|same sign|0
+Canada||2011|170|7.7|3361.96|interpreted|NULL|NULL|n/a (first year)|NULL||0
+Canada||2012|169|5.2|1820.07|interpreted|-1541.89|-45.9|interpreted|-1405.57|same sign|0
+Canada||2013|2856|13.4|380.11|interpreted|-1439.97|-79.1|interpreted|-1019.09|same sign|0
+France||2011|140|6.3|2934.41|interpreted|NULL|NULL|n/a (first year)|NULL||0
+France||2012|359|11.0|1805.15|interpreted|-1129.26|-38.5|interpreted|-1405.57|same sign|0
+France||2013|1916|9.0|823.73|interpreted|-981.42|-54.4|interpreted|-1019.09|same sign|0
+Germany||2011|175|7.9|2974.10|interpreted|NULL|NULL|n/a (first year)|NULL||0
+Germany||2012|339|10.4|1795.38|interpreted|-1178.72|-39.6|interpreted|-1405.57|same sign|0
+Germany||2013|1909|9.0|922.83|interpreted|-872.55|-48.6|interpreted|-1019.09|same sign|0
+United Kingdom||2011|175|7.9|3146.05|interpreted|NULL|NULL|n/a (first year)|NULL||0
+United Kingdom||2012|405|12.4|1759.70|interpreted|-1386.34|-44.1|interpreted|-1405.57|same sign|0
+United Kingdom||2013|2377|11.2|893.45|interpreted|-866.25|-49.2|interpreted|-1019.09|same sign|0
+United States||2011|768|34.7|3191.36|interpreted|NULL|NULL|n/a (first year)|NULL||0
+United States||2012|865|26.5|1658.54|interpreted|-1532.82|-48.0|interpreted|-1405.57|same sign|0
+United States||2013|7269|34.1|721.56|interpreted|-936.98|-56.5|interpreted|-1019.09|same sign|0
+N/A|not a country|2011|2|.1|3578.00|not interpreted|NULL|NULL|n/a (first year)|NULL||0
+N/A|not a country|2012|2|.1|1157.00|not interpreted|-2421.00|-67.7|not a country|-1405.57||0
+N/A|not a country|2013|320|1.5|677.08|interpreted|-479.92|-41.5|not a country|-1019.09||0
+--- C1. 2013 ORDER CLASSES BY COUNTRY ---
+no_bikes_share_revenue_pct_flagged, bike_aov_flagged and no_bikes_aov_flagged: comparable across countries only if amounts are in one currency, which the data cannot show (not interpreted).
+country|country_note|orders_2013|bikes_only_orders|bikes_other_orders|bike_orders|no_bikes_orders|no_bikes_share_orders_pct|no_bikes_share_revenue_pct_flagged|bike_aov_flagged|no_bikes_aov_flagged|no_bikes_rule_30_orders|bike_aov_rule_30_orders|range_min_no_bikes_share_pct|range_max_no_bikes_share_pct|named_countries_failing_no_bikes_rule|named_countries_failing_bike_rule
+-------|------------|-----------|-----------------|------------------|-----------|---------------|-------------------------|----------------------------------|----------------|--------------------|-----------------------|-----------------------|----------------------------|----------------------------|-------------------------------------|---------------------------------
+TOTAL||21287|1205|8501|9706|11581|54.4|3.6|1624.09|50.64|interpreted|interpreted|43.1|79.6|0|0
+United States||7269|329|2778|3107|4162|57.3|4.2|1617.60|52.65|interpreted|interpreted|43.1|79.6|0|0
+Australia||4640|462|2088|2550|2090|45.0|2.3|1662.17|48.00|interpreted|interpreted|43.1|79.6|0|0
+Canada||2856|62|522|584|2272|79.6|11.2|1649.97|53.70|interpreted|interpreted|43.1|79.6|0|0
+United Kingdom||2377|127|1150|1277|1100|46.3|2.5|1622.10|47.55|interpreted|interpreted|43.1|79.6|0|0
+France||1916|93|851|944|972|50.7|3.0|1621.81|48.64|interpreted|interpreted|43.1|79.6|0|0
+Germany||1909|119|967|1086|823|43.1|2.1|1587.58|45.67|interpreted|interpreted|43.1|79.6|0|0
+N/A|not a country|320|13|145|158|162|50.6|3.6|1321.87|48.22|interpreted|interpreted|43.1|79.6|0|0
+--- C2. CUSTOMER GROUPS BY COUNTRY (WHOLE-DATA PARTITION AND ACTIVE IN 2013) ---
+country|country_note|customers_whole_data|customer_share_pct|bike_customers|no_bikes_customers|bike_customers_pct|customers_in_both|active_2013|active_2013_share_pct|active_2013_bike|active_2013_no_bikes|active_2013_bike_pct
+-------|------------|--------------------|------------------|--------------|------------------|------------------|-----------------|-----------|---------------------|----------------|--------------------|--------------------
+TOTAL||18484|100.0|9132|9352|49.4|0|17427|100.0|8583|8844|49.3
+United States||7482|40.5|3407|4075|45.5|0|6909|39.6|3092|3817|44.8
+Australia||3591|19.4|2155|1436|60.0|0|3532|20.3|2144|1388|60.7
+United Kingdom||1913|10.3|1032|881|53.9|0|1867|10.7|1025|842|54.9
+France||1810|9.8|816|994|45.1|0|1696|9.7|766|930|45.2
+Germany||1780|9.6|904|876|50.8|0|1701|9.8|885|816|52.0
+Canada||1571|8.5|656|915|41.8|0|1402|8.0|513|889|36.6
+N/A|not a country|337|1.8|162|175|48.1|0|320|1.8|158|162|49.4
+--- D. PRICE-LIST CONSISTENCY BY PRODUCT AND MONTH (NO COUNTRY; NOT A CURRENCY TEST) ---
+period|product_months|lines|lines_without_price|product_months_with_more_than_one_price|lines_in_those_product_months|largest_relative_gap_pct
+------|--------------|-----|-------------------|---------------------------------------|-----------------------------|------------------------
+2010|10|14|0|0|0|.00
+2011|285|2216|0|3|9|12.02
+2012|414|3397|0|14|223|12.02
+2013|1222|52798|0|0|0|.00
+2014|42|1970|0|0|0|.00
+undated|3|3|0|0|0|.00
+ALL|1976|60398|0|17|232|12.02
+--- E. CONTROL TOTALS ---
+check_name|actual_value|expected_value|status
+----------|------------|--------------|------
+lines (after the join to gold.dim_customers)|60398|60398|OK
+orders (after the join)|27659|27659|OK
+revenue (after the join)|29356250|29356250|OK
+units (after the join)|60423|60423|OK
+customers (distinct customer_key in the fact table)|18484|18484|OK
+customers (rows in gold.dim_customers)|18484|18484|OK
+customers (distinct customer_id in gold.dim_customers)|18484|18484|OK
+undated orders|2|2|OK
+revenue 2010 tail, all countries (Q1 section A)|43419|43419|OK
+revenue 2011, all countries (Q1 section A)|7075088|7075088|OK
+revenue 2012, all countries (Q1 section A)|5842231|5842231|OK
+revenue 2013, all countries (Q1 section A)|16349836|16349836|OK
+revenue January 2014, all countries (Q1 section A)|45642|45642|OK
+revenue undated orders, all countries (Q1 section A)|34|34|OK
+active customers 2011, all countries (Q4 section A)|2216|2216|OK
+active customers 2012, all countries (Q4 section A)|3255|3255|OK
+active customers 2013, all countries (Q4 section A)|17427|17427|OK
+orders in the six countries + N/A|27659|27659|OK
+customers in the six countries + N/A (whole data)|18484|18484|OK
+customers in gold.dim_customers in the six countries + N/A|18484|18484|OK
+customers with country N/A (Q0 profile)|337|337|OK
+customers with NULL country in gold.dim_customers|0|0|OK
+lines with NULL country after the join|0|0|OK
+lines without a row in gold.dim_customers|0|0|OK
+orders with more than one customer_key|0|0|OK
+Bike customers, whole data, all countries (Q3 section F2)|9132|9132|OK
+No bikes customers, whole data, all countries (Q3 section F2)|9352|9352|OK
+customers in both groups|0|0|OK
+customer groups partition (Bike + No bikes)|18484|18484|OK
+Bike customers active in 2013, all countries (Q4 section C1)|8583|8583|OK
+No bikes customers active in 2013, all countries (Q4 section C1)|8844|8844|OK

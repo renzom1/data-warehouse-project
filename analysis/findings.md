@@ -10,7 +10,7 @@ This document records the results of the analyses in this folder and how far eac
 * **Uncertainty:** what the available data cannot settle.
 * **Needs additional data:** questions that cannot be answered with this dataset.
 
-All results come from `DataWarehouse_Test`, the database rebuilt from the corrected source files (decisions 6 and 7 in [`docs/decisions.md`](../docs/decisions.md)). Revenue is the sum of `sales_amount`; the source does not state a currency. The analysis conventions (main window 2011–2013, order-level dating, treatment of undated orders) are defined in decision 7.
+All results come from `DataWarehouse_Test`, the database rebuilt from the corrected source files (decisions 6 and 7 in [`docs/decisions.md`](../docs/decisions.md)). Revenue is the sum of `sales_amount`; the source does not state a currency. The analysis conventions (main window 2011–2013, order-level dating, treatment of undated orders) are defined in decision 7. Revenue sums amounts across countries; the currency is unknown (decision 7.11, Q5 section D).
 
 ---
 
@@ -166,7 +166,7 @@ Revenue per line fell by 46.1% from 2011 to 2012 (1,719.82 / 3,192.73 = 0.539) a
 * Product attributes are the current product version; a product's category could differ historically.
 * Section I covers only products sold in two consecutive years, uses realized prices, and says nothing about entering or exiting products.
 * 2011 and 2012 have few lines (2,216 and 3,397) against 52,798 in 2013; their shares and medians are less stable. 2013 itself changes within the year (Bike share of lines 29.9% in January 2013, 13.1% in February and 14.9% in March, section A2).
-* Country mix is not examined and could contribute. Customer overlap between Bike orders and No bikes orders is answered in Q3 (Observation 9): no customer has both.
+* Country mix is examined in Q5: the AOV fell inside every named country in both steps, so the fall is not only a change in country mix (Q5 Inference 1). Customer overlap between Bike orders and No bikes orders is answered in Q3 (Observation 9): no customer has both.
 * The 2011 to 2012 reading uses annual averages and an annual price index. The monthly step from December 2011 to January 2012 (3,015.29 to 1,965.73, section A2; −34.8%, 1,965.73 / 3,015.29 = 0.652) was not decomposed at monthly grain, so which products drive it is unknown.
 * "Product" means a distinct `product_number`. A relaunch under a new number would count as one product leaving and another entering, so new and exited products (sections G1, I) may overstate real assortment changes.
 
@@ -356,3 +356,152 @@ Reading rules used below. A **top p% group** is the k = CEILING(p × N) highest-
 
 * Customer identity resolution, if one person can hold several customer records (a person with two records appears as two customers).
 * Information on how the data was generated, to interpret the single price value of 2011 and the absence of No bikes customers in 2011 and 2012.
+
+---
+
+## Q5. How are customers, orders and revenue distributed across countries, and do the direction of the AOV changes 2011→2012 and 2012→2013 and the 2013 share of No bikes orders hold in each country?
+
+Source: [`05_geography.sql`](05_geography.sql), output in [`output/05_geography.txt`](output/05_geography.txt), plan in [`05_plan.md`](05_plan.md). Sections are cited by letter. Section E reconciles to the control totals (all 31 checks `OK`: 60,398 lines, 27,659 orders, revenue 29,356,250, units 60,423, 18,484 customers, all after the join to `gold.dim_customers`; revenue by period equals Q1 section A; active customers 2,216 / 3,255 / 17,427 equal Q4 section A; no customer has a NULL country; no line lacks a dimension row; no order has more than one customer; the customer groups are 9,132 + 9,352 = 18,484 with none in both, and 8,583 + 8,844 = 17,427 active in 2013). Country attribution is [decision 7.11](../docs/decisions.md#711-country-attribution); the customer groups are [decision 7.10](../docs/decisions.md#710-customer-groups-by-bike-purchase). Inside the script customers are identified by the fact table's customer column and never reported.
+
+Reading rules used below (declared in the plan before the run).
+
+* **Currency is unknown.** Across countries only **customer shares and order shares** are read. Revenue shares, AOV levels, Bike-order AOV and No bikes AOV across countries are printed in the output (flagged there) and are **not interpreted** here. A **within-country AOV change** is read, assuming that each country's amounts are in one unit over time; this cannot be checked.
+* **"Same pattern" criterion** (fixed before the run): the AOV change of a country has the same sign as the total AOV change, for each step. For the 2013 No bikes share the range across the interpretable countries is reported next to the total, with no threshold for "same".
+* **Minimum sizes:** an AOV needs at least 100 orders in the country-year, and a change needs both years to pass; the 2013 No bikes figures need at least 30 No bikes orders and the Bike-order figures at least 30 Bike orders. All six named countries pass in every year (the smallest country-years are France 2011 with 140 orders and Canada 2012 with 169; the smallest 2013 counts are 823 No bikes orders in Germany and 584 Bike orders in Canada), so the "most" rule (4 or more countries failing) does not apply.
+* **N/A is not a country.** It is printed in every table and kept in every total, but it is not read as a place. Its 2011 and 2012 rows have 2 orders each and are below the minimum ("not interpreted").
+
+### Observations
+
+1. **Customers by country in the dimension (section A1).** 
+
+   | Country | Customers | Share of 18,484 |
+   |---|---|---|
+   | United States | 7,482 | 40.5% |
+   | Australia | 3,591 | 19.4% |
+   | United Kingdom | 1,913 | 10.3% |
+   | France | 1,810 | 9.8% |
+   | Germany | 1,780 | 9.6% |
+   | Canada | 1,571 | 8.5% |
+   | N/A (not a country) | 337 | 1.8% |
+
+   The seven rows add to 18,484 and each `customer_id` appears once.
+
+2. **Active customers and orders by country and year (section A2).** Each cell gives the count and its share of the year's total. Orders equal customers in 2011.
+
+   | Country | Customers 2011 | Customers 2012 | Customers 2013 | Orders 2011 | Orders 2012 | Orders 2013 |
+   |---|---|---|---|---|---|---|
+   | United States | 768 (34.7%) | 864 (26.5%) | 6,909 (39.6%) | 768 (34.7%) | 865 (26.5%) | 7,269 (34.1%) |
+   | Australia | 786 (35.5%) | 1,127 (34.6%) | 3,532 (20.3%) | 786 (35.5%) | 1,130 (34.6%) | 4,640 (21.8%) |
+   | United Kingdom | 175 (7.9%) | 402 (12.4%) | 1,867 (10.7%) | 175 (7.9%) | 405 (12.4%) | 2,377 (11.2%) |
+   | France | 140 (6.3%) | 356 (10.9%) | 1,696 (9.7%) | 140 (6.3%) | 359 (11.0%) | 1,916 (9.0%) |
+   | Germany | 175 (7.9%) | 335 (10.3%) | 1,701 (9.8%) | 175 (7.9%) | 339 (10.4%) | 1,909 (9.0%) |
+   | Canada | 170 (7.7%) | 169 (5.2%) | 1,402 (8.0%) | 170 (7.7%) | 169 (5.2%) | 2,856 (13.4%) |
+   | N/A (not a country) | 2 (0.1%) | 2 (0.1%) | 320 (1.8%) | 2 (0.1%) | 2 (0.1%) | 320 (1.5%) |
+   | **Total** | 2,216 | 3,255 | 17,427 | 2,216 | 3,269 | 21,287 |
+
+   The shares of the countries change between years: for example the United States has 34.7%, 26.5% and 39.6% of the customers and Australia 35.5%, 34.6% and 20.3%. In 2011-2013 the N/A rows are at most 1.8% of the customers and 1.5% of the orders of a year. The output also prints revenue and revenue shares by country and year; they are flagged and not read.
+
+3. **AOV change within each country (section B).** The AOV is revenue / orders. Each cell is the percentage change of the country's own AOV from the previous year; the total is next to the countries. All six named countries are interpretable in both steps (observation 2 gives the order counts; all are at least 100). N/A is not read.
+
+   | | 2011→2012 | 2012→2013 |
+   |---|---|---|
+   | United States | −48.0% | −56.5% |
+   | Australia | −42.3% | −50.4% |
+   | United Kingdom | −44.1% | −49.2% |
+   | France | −38.5% | −54.4% |
+   | Germany | −39.6% | −48.6% |
+   | Canada | −45.9% | −79.1% |
+   | Range of the six countries | −38.5% (France) to −48.0% (United States) | −48.6% (Germany) to −79.1% (Canada) |
+   | **Total** | −44.0% (3,192.73 to 1,787.16; −1,405.57) | −57.0% (1,787.16 to 768.07; −1,019.09) |
+
+   The AOV of every named country fell in both steps, so each country has the same sign as the total (section B, `sign_vs_total` is "same sign" in all 12 cells). In both steps the total change lies inside the range of the six within-country changes; this does not show the size of the mix effect.
+
+4. **The 2013 order classes by country (section C1).** Bike orders are the orders with a Bike line ("Bikes only" and "Bikes + other", decision 7.8). There is no No bikes order in 2011 or 2012 (Q2 section H).
+
+   | Country | Orders 2013 | Bike orders | No bikes orders | No bikes share of orders |
+   |---|---|---|---|---|
+   | United States | 7,269 | 3,107 | 4,162 | 57.3% |
+   | Australia | 4,640 | 2,550 | 2,090 | 45.0% |
+   | United Kingdom | 2,377 | 1,277 | 1,100 | 46.3% |
+   | France | 1,916 | 944 | 972 | 50.7% |
+   | Germany | 1,909 | 1,086 | 823 | 43.1% |
+   | Canada | 2,856 | 584 | 2,272 | 79.6% |
+   | N/A (not a country) | 320 | 158 | 162 | 50.6% |
+   | **Total** | 21,287 | 9,706 | 11,581 | 54.4% |
+
+   The range of the No bikes share of orders across the six named countries is 43.1% (Germany) to 79.6% (Canada), against 54.4% in total. Canada is 22.3 points above the next highest country (79.6 − 57.3 = 22.3, United States) and 36.5 points above the lowest (79.6 − 43.1 = 36.5). Bike orders plus No bikes orders add to the orders (for example 584 + 2,272 = 2,856 for Canada). The output also prints the No bikes share of revenue and the class AOVs by country; they are flagged and not read.
+
+5. **Ordering of the within-country AOV falls and of the No bikes shares.** Ordered from the largest 2012→2013 fall to the smallest (observation 3), the countries are Canada (−79.1%), United States (−56.5%), France (−54.4%), Australia (−50.4%), United Kingdom (−49.2%), Germany (−48.6%). Ordered from the highest 2013 No bikes share of orders to the lowest (observation 4) they are Canada (79.6%), United States (57.3%), France (50.7%), United Kingdom (46.3%), Australia (45.0%), Germany (43.1%). The two lists agree for four countries and differ only in the swap of Australia and the United Kingdom.
+
+6. **Orders per customer in 2013 (section A2; derived after the run at the author's request; counts only; not a repeat-purchase measure).** Each figure is the 2013 orders divided by the 2013 active customers.
+
+   | Country | Orders / customers | Orders per customer |
+   |---|---|---|
+   | United States | 7,269 / 6,909 | 1.05 |
+   | Australia | 4,640 / 3,532 | 1.31 |
+   | United Kingdom | 2,377 / 1,867 | 1.27 |
+   | France | 1,916 / 1,696 | 1.13 |
+   | Germany | 1,909 / 1,701 | 1.12 |
+   | Canada | 2,856 / 1,402 | 2.04 |
+   | **Total** | 21,287 / 17,427 | 1.22 |
+
+   Canada has 2.04 orders per customer against 1.05 to 1.31 for the other five countries. Canada's share of orders went from 5.2% in 2012 to 13.4% in 2013 (observation 2), against a 2013 share of customers of 8.0% (5.2% in 2012). Q5 does not examine repeat purchasing by country; this is an observation of counts only.
+
+7. **Customer groups by country (section C2, decision 7.10).** The whole-data columns cover all 18,484 customers; the 2013 column covers the customers active in 2013, with the whole-data group.
+
+   | Country | Bike customers | No bikes customers | Bike customers, share of the country | Active in 2013 | Bike customers among them, share |
+   |---|---|---|---|---|---|
+   | United States | 3,407 | 4,075 | 45.5% | 6,909 | 44.8% |
+   | Australia | 2,155 | 1,436 | 60.0% | 3,532 | 60.7% |
+   | United Kingdom | 1,032 | 881 | 53.9% | 1,867 | 54.9% |
+   | France | 816 | 994 | 45.1% | 1,696 | 45.2% |
+   | Germany | 904 | 876 | 50.8% | 1,701 | 52.0% |
+   | Canada | 656 | 915 | 41.8% | 1,402 | 36.6% |
+   | N/A (not a country) | 162 | 175 | 48.1% | 320 | 49.4% |
+   | **Total** | 9,132 | 9,352 | 49.4% | 17,427 | 49.3% |
+
+   No customer is in both groups in any country (`customers_in_both` is 0 in every row). Among the customers active in 2013, Canada has the lowest share of Bike customers (36.6%).
+
+8. **Orders per active customer within each group, 2013 (sections C1 and C2; derived after the run at the author's request; counts only; not a repeat-purchase measure).** No customer has both order types (decision 7.10; `customers_in_both` is 0 in every country, section C2), so the 2013 No bikes orders of a country are the orders of its No bikes customers active in 2013, and likewise the Bike orders of its Bike customers. Each figure is the orders of section C1 divided by the active customers of the group in section C2.
+
+   | Country | No bikes orders / active No bikes customers | Per customer | Bike orders / active Bike customers | Per customer |
+   |---|---|---|---|---|
+   | United States | 4,162 / 3,817 | 1.09 | 3,107 / 3,092 | 1.00 |
+   | Australia | 2,090 / 1,388 | 1.51 | 2,550 / 2,144 | 1.19 |
+   | United Kingdom | 1,100 / 842 | 1.31 | 1,277 / 1,025 | 1.25 |
+   | France | 972 / 930 | 1.05 | 944 / 766 | 1.23 |
+   | Germany | 823 / 816 | 1.01 | 1,086 / 885 | 1.23 |
+   | Canada | 2,272 / 889 | 2.56 | 584 / 513 | 1.14 |
+
+   Canada's 2.04 orders per customer (observation 6) comes with 2.56 orders per No bikes customer, against 1.01 to 1.51 in the other five countries, while its Bike customers (1.14 orders each) are within the range of the others (1.00 to 1.25). Canada's No bikes share combines a lower share of active Bike customers (36.6%, observation 7) and more orders per No bikes customer; the output does not apportion it between the two and does not say why.
+
+9. **Price-list consistency (section D; not a currency test; no country is joined).** For each product and month the output compares the lowest and the highest realized unit price per line (sales amount / quantity). In 2013 there are 1,222 product-months (52,798 lines) and none has more than one price. In 2011 there are 285 product-months (2,216 lines), 3 of them with more than one price (9 lines); in 2012, 414 product-months (3,397 lines), 14 of them with more than one price (223 lines). Together 3 + 14 = 17 product-months and 9 + 223 = 232 lines vary, with a largest relative gap of 12.02%. The 2010 tail (10 product-months), January 2014 (42) and the undated orders (3) have none. No line is without a price (all 60,398 lines in 1,976 product-months).
+
+### Inferences
+
+1. **The fall in AOV is not confined to one country, and the fall of the total is not only a change in country mix.** The AOV of every one of the six named countries fell in both steps (observation 3). A change in the country mix alone could lower the total AOV while no country's AOV fell; here every country's fell (N/A, not read, also fell; its weight is at most 1.5% of orders), so the fall of the total is not only a mix effect. The output does not say how much of the fall is inside the countries and how much is mix (no counterfactual or decomposition was computed), and the country mix did change between years (observation 2). This reading assumes that each country's amounts are in one unit over time.
+2. **A within-country AOV change also contains mix.** A 2011→2012 change contains the model mix and the price changes within Bikes (Q2 section I). A 2012→2013 change contains the Bike / No bikes class mix inside the country: there is no No bikes order in 2011 or 2012 and No bikes orders are 43.1% to 79.6% of the 2013 orders of the named countries (observation 4), while within each named country the AOV of its No bikes orders is far below that of its Bike orders (section C1; the levels are not compared across countries).
+3. **No bikes orders are in every named country in 2013, at 43.1% to 79.6% of its orders.** Each named country has at least 823 No bikes orders (observation 4), so they are not limited to one country. The share of orders ranges from 43.1% to 79.6% and the criterion sets no threshold for "same", so the output does not call the pattern "the same" or "different"; Canada is above the other five by at least 22.3 points.
+4. **The ordering of the AOV falls follows nearly the same order as the No bikes shares (observation 5); the 2013 AOV is arithmetically tied to the class shares and this is consistent with Q2, so it is not a separate finding.** A country's 2013 AOV is the average of its Bike-order AOV and its No bikes AOV weighted by the order shares, and there is no No bikes order in the previous year. Within each named country the AOV of its No bikes orders is far below that of its Bike orders (section C1; the levels are not compared across countries), so for given class AOVs a higher No bikes share lowers the 2013 AOV by construction, and a similar ordering is expected. The ordering of the falls also varies with each country's 2013 Bike-order AOV relative to its own 2012 AOV, which is why it need not match exactly (the Australia / United Kingdom swap is not interpreted). With six countries, a matching order says little.
+5. **In 2013 every product-month has one realized unit price across all its lines (whatever their country).** In 2011 and 2012 the 17 product-months with more than one price (232 lines; gap up to 12.02%) cannot be attributed: the output has no country in section D and cannot tell whether the lines differ by country or by date within the month. Whether the lines of a product-month come from more than one country is not in the output. This does not show a single currency, so the currency stays unknown and the reading rule does not change.
+
+### Hypotheses (not established)
+
+* Canada's 2.56 orders per No bikes customer (observation 8) may reflect when in 2013 those customers first ordered, or same-day orders (decision 7.9 rule 3). Not tested.
+* The 17 product-months with more than one price in 2011 and 2012 may reflect price changes within a month, discounts, differences between countries, or the product-identity caveat of Q2. Not tested: no country is joined in section D.
+
+### Uncertainty
+
+* **Country is the customer's location in the source extract, at an unknown date** (decision 7.11), not where the order shipped. The data has no history, so a customer who moved is attributed to one country for all orders; this cannot be checked.
+* **Currency is unknown.** Revenue shares, AOV levels and class AOVs across countries are not interpreted. A within-country change is read only on the assumption that the country's amounts are in one unit over time, which the data cannot show. Section D does not test the currency under any result.
+* **Country differences in 2013 may reflect when in the year each country's customers started buying:** in 2013 there are 12,521 customers whose first order is in 2013 (Q3 section A) and there is no No bikes order before 2013 (Q2 section H). Not tested here: the output does not show the start month by country.
+* **A country's order share and its customer share differ by orders per customer** (observations 6 and 8). Orders per customer within a calendar year also vary with when customers started and with same-day orders (decision 7.9 rule 3); the output shows neither by country. Q5 does not examine repeat purchasing by country.
+* **Only six named countries,** and one pattern per country for each of two steps; a match between two orderings of six countries (observation 5) says little.
+* **N/A (337 customers) is not a country** and may hold customers of any of them; it is 1.8% of the 2013 customers and 1.5% of the 2013 orders (observation 2), and it is in every total.
+* **The customer groups use the whole data** (decision 7.10), so a customer's group in 2013 can rest on an order of another year; no customer has both order types (section E).
+* **The 2011 and 2012 AOVs of France, Germany, the United Kingdom and Canada rest on 140 to 405 orders**, with one line per order in 2011; they pass the 100-order minimum, but a few orders of a cheap or an expensive model move them.
+
+### Needs additional data
+
+* Documentation of the currency, or of the price list by country, with effective dates, to know whether amounts can be compared across countries and whether the 2011-2012 price differences of section D are by country or by date.
+* The country at the time of each order (or a ship-to country), to know whether the customer's recorded country is the country of the orders.
